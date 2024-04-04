@@ -42,14 +42,6 @@ public class UserEntity {
     private String password;
 
 
-
-
-
-
-
-    @Size(min = 3, max = 50, message = "Father's name must be between 3 and 50 characters")
-    private String fathersName;
-
     private String gender;
 
     @Past
