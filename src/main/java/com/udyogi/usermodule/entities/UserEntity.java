@@ -32,6 +32,21 @@ public class UserEntity {
 
     private String lastName;
 
+
+    private String phoneNumber;
+
+    @Email
+    private String email;
+
+    @JsonIgnore
+    private String password;
+
+
+
+
+
+
+
     @Size(min = 3, max = 50, message = "Father's name must be between 3 and 50 characters")
     private String fathersName;
 
@@ -41,30 +56,20 @@ public class UserEntity {
     @Column(name = "DOB", nullable = false)
     private LocalDate dateOfBirth;
 
-    private String phoneNumber;
 
     @Size(max = 255, message = "Address can't exceed 255 characters")
     private String address;
 
-    @Email
-    private String email;
 
-    @JsonIgnore
-    private String createPassword;
-
-    private String occupation;
-
-    private String aadharCardNumber;
-
+// resume required fields
+private String resumeName;
+    private String resumeType;
+    private String resumePath;
     @Lob
-    @Column(length = 5000000)
-    private byte[] profilePic;
+    private byte[] resume;
 
-    @ElementCollection
-    private List<String> roles = new ArrayList<>();
-    @JsonIgnore
-    public boolean active;
-    @JsonIgnore
-    private String otp;
-
+// another required fields
+    private String workStatus;
+    private String accStatus;
+    private boolean employed;
 }
