@@ -1,7 +1,12 @@
 package com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities;
 
+import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.enums.EmploymentType;
+import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.enums.JobStatus;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,11 +20,13 @@ public class JobPost {
     private String jobTitle;
     private String experience;
     private int positions;
-    private String skills;
+    @ElementCollection
+    private List<String> skills = new ArrayList<>();
 
     private String education;
     private String location;
-    private String empolymentType;
+    @Enumerated(EnumType.STRING)
+    private EmploymentType empolymentType;
     private String jobMode;
     private String salary;
     private String jobDescription;
@@ -28,5 +35,16 @@ public class JobPost {
     @ElementCollection
     private List<String> questions=new ArrayList<>();
 
+    @ManyToOne
+    @JoinColumn(name = "employer_id")
+    private EmployerAdmin employerAdmin;
+    @CreationTimestamp
+    @Column(name = "created_date", updatable = false)
+    private LocalDateTime createdDate;
 
+    @UpdateTimestamp
+    @Column(name = "updated_date", insertable = false)
+    private LocalDateTime updatedDate;
+@Enumerated(EnumType.STRING)
+    private JobStatus jobStatus;
 }
