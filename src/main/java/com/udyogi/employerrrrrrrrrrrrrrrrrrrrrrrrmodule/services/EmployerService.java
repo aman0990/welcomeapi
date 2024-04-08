@@ -7,25 +7,42 @@ import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.JobPost;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.repositories.EmployerAdminRepo;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.repositories.JobPostRepo;
 import org.springframework.beans.BeanUtils;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 
 @Service
 public class EmployerService {
-    public final EmployerAdminRepo employerAdminRepo;
-    public final JobPostRepo jobPostRepo;
 
-    public EmployerService(EmployerAdminRepo employerAdminRepo, JobPostRepo jobPostRepo) {
+    private final EmployerAdminRepo employerAdminRepo;
+    private final JobPostRepo jobPostRepo;
+    private final PasswordEncoder passwordEncoder;
+
+
+    public EmployerService(EmployerAdminRepo employerAdminRepo, JobPostRepo jobPostRepo, PasswordEncoder passwordEncoder) {
         this.employerAdminRepo = employerAdminRepo;
         this.jobPostRepo = jobPostRepo;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public String addEmployer(AdminSignUp adminSignUp) {
         EmployerAdmin employerAdmin = new EmployerAdmin();
         BeanUtils.copyProperties(adminSignUp, employerAdmin);
+        employerAdmin.setPassword(passwordEncoder.encode(adminSignUp.getPassword()));
         employerAdminRepo.save(employerAdmin);
         return "Employer added successfully";
+    }
+
+    public String loginEmployer(String email, String password) {
+        EmployerAdmin employerAdmin = employerAdminRepo.findByEmail(email);
+        if (Objects.isNull(employerAdmin)) {
+            return "Employer not found";
+        }
+        if (passwordEncoder.matches(password, employerAdmin.getPassword())) {
+            return "Employer logged in successfully";
+        }
+        return "Invalid credentials";
     }
 
     public String addJobPost(AddJobPostDto jobPost, Long id) {

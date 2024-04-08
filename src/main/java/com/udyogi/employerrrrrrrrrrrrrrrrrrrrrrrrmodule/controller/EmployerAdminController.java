@@ -19,6 +19,8 @@ public class EmployerAdminController {
     public EmployerAdminController(EmployerService employerService) {
         this.employerService = employerService;
     }
+
+
     @PostMapping("/signup")
     public ResponseEntity<String> addEmployer(@Valid @RequestBody AdminSignUp adminSignUp) {
         try {
@@ -35,6 +37,7 @@ public class EmployerAdminController {
     @PostMapping("/login")
     public ResponseEntity<String> loginEmployer(@RequestParam String email, @RequestParam String password) {
         try {
+             employerService.loginEmployer(email, password);
             log.info("Employer logged in successfully: {}", email);
             return new ResponseEntity<>("Employer logged in successfully", HttpStatus.OK);
         } catch (Exception e) {
@@ -43,6 +46,7 @@ public class EmployerAdminController {
             return new ResponseEntity<>("Error occurred while logging in employer", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     @PostMapping("/add-jobpost/{id}")
     public ResponseEntity<String> addJobPost(@RequestBody AddJobPostDto jobPost ,@RequestParam Long id) {
         try {

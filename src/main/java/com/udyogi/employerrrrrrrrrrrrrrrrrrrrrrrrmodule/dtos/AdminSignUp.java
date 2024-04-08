@@ -44,6 +44,9 @@ public class AdminSignUp {
     @Size(max = 50, message = "Incorporate ID cannot exceed 50 characters")
     private String incorporateId;
 
+    @NotBlank(message = "About company is required")
+    private String aboutCompany;
+
     @NotBlank(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters long")
     private String password;

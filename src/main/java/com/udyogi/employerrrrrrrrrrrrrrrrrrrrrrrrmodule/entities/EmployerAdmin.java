@@ -27,6 +27,7 @@ public class EmployerAdmin {
     private Integer numberOfEmployees;
     private Date establishedYear;
     private String incorporateId;
+    private String aboutCompany;
     private String password;
     @OneToMany(mappedBy = "employerAdmin", cascade = CascadeType.ALL)
     private List<JobPost> jobPosts = new ArrayList<>();
