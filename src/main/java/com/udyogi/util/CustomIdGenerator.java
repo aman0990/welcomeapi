@@ -1,25 +1,26 @@
 package com.udyogi.util;
 
-import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.EmployerAdmin;
-import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.repositories.EmployerRepositories;
+import com.udyogi.employeemodule.repositories.EmployeeRepo;
+import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.AdminSignUp;
+import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.repositories.EmployerAdminRepo;
 import lombok.AllArgsConstructor;
-import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.id.IdentifierGenerator;
+import org.springframework.stereotype.Component;
+
+@Component
 @AllArgsConstructor
-public class CustomIdGenerator implements IdentifierGenerator {
+public class CustomIdGenerator{
 
+    private final EmployeeRepo employeeRepo;
+    private static final String PREFIX = "UDY-";
+    private static final String PADDING = "00000";
+    private static int counter;
 
-    private final EmployerRepositories employerRepositories;
-
-    // Pattern for generating custom id
-    // UDY-COMPANYNAME-000001
-    @Override
-    public Object generate(SharedSessionContractImplementor session, Object object) {
-
-        EmployerAdmin companyName = (EmployerAdmin) employerRepositories.findByemail("email");
-        String customId = null;
-        customId = "UDY-" + companyName.getCompanyName() + "-" + String.format("%06d", companyName.getId());
-        return customId;
-
+    public String generateEmployeeId() {
+        counter = employeeRepo.findAll().size();
+        counter++;
+        return PREFIX + PADDING.substring(String.valueOf(counter).length()) + counter;
     }
+
+    // UDY-COMPANYNAME-000001
+
 }

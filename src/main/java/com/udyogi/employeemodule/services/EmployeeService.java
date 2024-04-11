@@ -4,9 +4,11 @@ import com.udyogi.employeemodule.dtos.SignUpDto;
 import com.udyogi.employeemodule.entities.EmployeeEntity;
 import com.udyogi.employeemodule.mapper.EmployeeMapper;
 import com.udyogi.employeemodule.repositories.EmployeeRepo;
+import com.udyogi.util.CustomIdGenerator;
 import com.udyogi.util.EmailService;
 import com.udyogi.util.UtilService;
 import lombok.AllArgsConstructor;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +19,7 @@ public class EmployeeService {
     private final EmployeeRepo employeeRepo;
     private final EmailService emailService;
     private final UtilService utilService;
+    private final CustomIdGenerator customIdGenerator;
     private final PasswordEncoder passwordEncoder;
 
     public String signup(SignUpDto signUpDto) {
@@ -28,7 +31,7 @@ public class EmployeeService {
             int otp = utilService.generateOtp();
             employeeEntity.setOtp(otp);
             employeeEntity.setVerified(false);
-//            employeeEntity.
+            employeeEntity.setCustomId(customIdGenerator.generateEmployeeId());
             if(employeeRepo.existsByEmail(signUpDto.getEmail())){
                 return "Email already exists";
             }else {

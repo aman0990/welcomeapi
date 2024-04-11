@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
@@ -42,4 +43,9 @@ public class EmployerAdmin {
     @UpdateTimestamp
     @Column(name = "updated_date", insertable = false)
     private LocalDateTime updatedDate;
+
+    // Custom ID generation for EmployerEntity
+    @GenericGenerator(name = "custom-id-generator", strategy = "com.udyogi.util.CustomIdGenerator")
+    @Column(name = "custom_id", nullable = false, unique = true, length = 50)
+    private String customId;
 }
