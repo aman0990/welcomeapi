@@ -1,5 +1,6 @@
 package com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -28,7 +29,9 @@ public class EmployerAdmin {
     private Date establishedYear;
     private String incorporateId;
     private String aboutCompany;
+    @JsonIgnore
     private String password;
+    private Integer otp;
     @OneToMany(mappedBy = "employerAdmin", cascade = CascadeType.ALL)
     private List<JobPost> jobPosts = new ArrayList<>();
 
