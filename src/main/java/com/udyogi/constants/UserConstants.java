@@ -106,6 +106,10 @@ public class UserConstants {
     public static final String FORGOT_PASSWORD_SUCCESS = "Forgot password success";
     public static final String FAILED_TO_PROCESS_FORGOT_PASSWORD = "Failed to process forgot password";
     public static final Object ACCOUNT_NOT_VERIFIED = "Account not verified";
+    public static final String HR_ACCOUNT_CREATED_SUCCESSFULLY = "HR account created successfully";
+    public static final String FAILED_TO_CREATE_HR_ACCOUNT = "Failed to create HR account";
+    public static final String ERROR_WHILE_CREATING_HR_ACCOUNT = "Error while creating HR account";
+    public static final String HR_NOT_ACTIVE = "HR not active";
     ;
     ;
 }

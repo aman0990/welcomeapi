@@ -1,13 +1,22 @@
 package com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.services;
 
+import com.udyogi.constants.UserConstants;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.AddJobPostDto;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.AdminSignUp;
+import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.HrCreateDto;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.EmployerAdmin;
+import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.HrEntity;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.JobPost;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.repositories.EmployerAdminRepo;
+import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.repositories.HrRepo;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.repositories.JobPostRepo;
+import com.udyogi.util.EmailService;
+import com.udyogi.util.UtilService;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,21 +24,18 @@ import java.util.Objects;
 
 @Service
 @Slf4j
+@AllArgsConstructor
 public class EmployerService {
 
     private final EmployerAdminRepo employerAdminRepo;
+    private final HrRepo hrRepo;
+    private final UtilService utilService;
+    private final EmailService emailService;
     private final JobPostRepo jobPostRepo;
     private final PasswordEncoder passwordEncoder;
     private static final String PREFIX = "UDY-";
     private static final String PADDING = "00000";
-    private static int counter;
 
-
-    public EmployerService(EmployerAdminRepo employerAdminRepo, JobPostRepo jobPostRepo, PasswordEncoder passwordEncoder) {
-        this.employerAdminRepo = employerAdminRepo;
-        this.jobPostRepo = jobPostRepo;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     public String addEmployer(AdminSignUp adminSignUp) {
         EmployerAdmin employerAdmin = new EmployerAdmin();
@@ -50,7 +56,7 @@ public class EmployerService {
     }
 
     public String generateEmployerId(String companyName) {
-        counter = employerAdminRepo.findAll().size();
+        int counter = employerAdminRepo.findAll().size();
         counter++;
         return PREFIX + companyName + PADDING.substring(String.valueOf(counter).length()) + counter;
     }
@@ -75,5 +81,54 @@ public class EmployerService {
         });
         jobPostRepo.save(jobP);
         return null;
+    }
+
+    public String addHr(String email, Long id) {
+        HrEntity hrEntity = new HrEntity();
+        hrEntity.setHrEmail(email);
+        employerAdminRepo.findById(id).ifPresent(employerAdmin -> {
+            employerAdmin.getHrEntities().add(hrEntity);
+            employerAdminRepo.save(employerAdmin);
+        });
+        if(Objects.nonNull(hrEntity.getHrEmail())) {
+            var otp = utilService.generateOtp();
+            emailService.sendOtptoHr(email, otp);
+        }
+        return "HR added successfully";
+    }
+
+    public ResponseEntity<String> updateHrProfile(String email, HrCreateDto hrCreateDto) {
+        HrEntity hrEntity = new HrEntity();
+        if(Objects.isNull(hrCreateDto)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(UserConstants.NOT_ACCEPTABLE_406);
+        }
+        if(!hrEntity.getIsHrActive()){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(UserConstants.HR_NOT_ACTIVE);
+        }else {
+            hrEntity.setHrDesignation(hrCreateDto.getHrDesignation());
+            hrEntity.setHrMobile(hrCreateDto.getHrMobile());
+            hrEntity.setHrName(hrCreateDto.getHrName());
+            hrEntity.setWorkExperience(hrCreateDto.getWorkExperience());
+            hrEntity.setWorkLocation(hrCreateDto.getWorkLocation());
+            var hrEmail = employerAdminRepo.findByEmail(email);
+            if (Objects.nonNull(hrEmail)) {
+                employerAdminRepo.save(hrEmail);
+                emailService.sendConfirmationEmail(hrEmail.getEmail());
+                return ResponseEntity.status(HttpStatus.CREATED).body(UserConstants.HR_ACCOUNT_CREATED_SUCCESSFULLY);
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(UserConstants.FAILED_TO_CREATE_USER_ACCOUNT);
+            }
+        }
+    }
+
+    public String verifyHrOtp(String email, Integer otp) {
+        if(Boolean.TRUE.equals(utilService.verifyEmail(email, otp))) {
+            HrEntity hrEntity = new HrEntity();
+            hrEntity.setIsHrActive(true);
+            hrRepo.save(hrEntity);
+            updateHrProfile(email, new HrCreateDto());
+            return "HR verified successfully";
+        }
+        return "Error occurred while verifying HR";
     }
 }

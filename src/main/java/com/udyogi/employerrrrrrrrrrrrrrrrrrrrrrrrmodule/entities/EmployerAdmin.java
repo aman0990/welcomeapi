@@ -2,7 +2,7 @@ package com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -12,7 +12,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 public class EmployerAdmin {
     @Id
@@ -48,4 +51,8 @@ public class EmployerAdmin {
     @GenericGenerator(name = "custom-id-generator", strategy = "com.udyogi.util.CustomIdGenerator")
     @Column(name = "custom_id", nullable = false, unique = true, length = 50)
     private String customId;
+
+    @OneToMany(mappedBy = "hrId", cascade = CascadeType.ALL)
+    @JoinColumn(name = "employer_id")
+    private List<HrEntity> hrEntities = new ArrayList<>();
 }

@@ -72,4 +72,42 @@ public class EmailService {
         helper.setSentDate(new Date());
         javaMailSender.send(mimeMessage);
     }
+
+    public void sendOtptoHr(String email, int otp) {
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
+        try {
+            var htmlContent = """
+                    <h1 style="font-size: 24px; color: #4E342E;">OTP Verification</h1>
+                    <div style="text-align: center; padding: 20px;">
+                        <p style="font-size: 18px; color: #5D4037;">Your OTP for registration is %s</p>
+                        <p style="font-size: 16px; color: #333;">Our team will contact you soon.</p>
+                    </div>
+                    <p style="font-size: 14px; color: #333;">Please refer to <a href="C:\\Users\\anand\\OneDrive\\Desktop\\LawyerTalk\\target\\surefire-reports" target="_blank">surefire-reports</a> for the individual test results.</p>
+                    <p style="font-size: 14px; color: #333;">Please refer to dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.</p>
+                    """.formatted(otp);
+            senderMethod(email, mimeMessage, helper, htmlContent);
+        } catch (MessagingException | UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendConfirmationEmail(String email) {
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
+        try {
+            var htmlContent = """
+                    <h1 style="font-size: 24px; color: #4E342E;">Email Confirmation</h1>
+                    <div style="text-align: center; padding: 20px;">
+                        <p style="font-size: 18px; color: #5D4037;">Your email has been successfully verified.</p>
+                        <p style="font-size: 16px; color: #333;">Our team will contact you soon.</p>
+                    </div>
+                    <p style="font-size: 14px; color: #333;">Please refer to <a href="C:\\Users\\anand\\OneDrive\\Desktop\\LawyerTalk\\target\\surefire-reports" target="_blank">surefire-reports</a> for the individual test results.</p>
+                    <p style="font-size: 14px; color: #333;">Please refer to dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.</p>
+                    """;
+            senderMethod(email, mimeMessage, helper, htmlContent);
+        } catch (MessagingException | UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+    }
 }
