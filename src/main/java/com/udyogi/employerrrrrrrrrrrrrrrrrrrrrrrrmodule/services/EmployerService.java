@@ -92,6 +92,7 @@ public class EmployerService {
         });
         if(Objects.nonNull(hrEntity.getHrEmail())) {
             var otp = utilService.generateOtp();
+            hrEntity.setOtp(otp);
             emailService.sendOtptoHr(email, otp);
         }
         return "HR added successfully";

@@ -6,4 +6,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface HrRepo extends JpaRepository<HrEntity, Long> {
+    boolean existsByEmail(String email);
+
+    HrEntity findByEmail(String email);
 }

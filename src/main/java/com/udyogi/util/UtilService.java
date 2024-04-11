@@ -3,7 +3,9 @@ package com.udyogi.util;
 import com.udyogi.employeemodule.entities.EmployeeEntity;
 import com.udyogi.employeemodule.repositories.EmployeeRepo;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.EmployerAdmin;
+import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.HrEntity;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.repositories.EmployerAdminRepo;
+import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.repositories.HrRepo;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ public class UtilService {
 
     private final Random random = new Random();
     private final EmployeeRepo employeeRepo;
+    private final HrRepo hrRepo;
     private final EmployerAdminRepo employerAdminRepo;
     private final PasswordEncoder passwordEncoder;
 
@@ -37,7 +40,9 @@ public class UtilService {
         } else if (employerAdminRepo.existsByEmail(email)) {
             EmployerAdmin employerAdmin = employerAdminRepo.findByEmail(email);
             return employerAdmin.getOtp() == otp;
-
+        }else if (hrRepo.existsByEmail(email)) {
+            HrEntity hrEntity = hrRepo.findByEmail(email);
+            return hrEntity.getOtp() == otp;
         }else
             return false;
     }
