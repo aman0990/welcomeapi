@@ -5,7 +5,6 @@ import jakarta.mail.internet.MimeMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
@@ -24,23 +23,117 @@ public class EmailService {
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
         try {
             String verifyLink = "http://localhost:8081/api/v1/employee/verifyEmail/" + email + "/" + otp;
+            String logoUrl = "https://vrpigroup.com/static/media/vrpiLogo.c468638808a1a63abd35.png";
+
             String htmlContent = String.format("""
-                    <div style="background-color: #FFA726; padding: 20px; text-align: center;">
-                        <h1 style="font-size: 24px; color: #FFFFFF;">Email Verification</h1>
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Email Verification</title>
+                <style>
+                    body {
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        background-color: #f8f9fa;
+                        margin: 0;
+                        padding: 0;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        height: 100vh;
+                    }
+                    .container {
+                        max-width: 600px;
+                        margin: 20px;
+                        padding: 30px;
+                        background-color: #fff;
+                        border-radius: 12px;
+                        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+                        transform: perspective(1000px) rotateY(5deg);
+                    }
+                    .header {
+                        background-color: #FF6F00;
+                        padding: 20px;
+                        text-align: center;
+                        border-top-left-radius: 12px;
+                        border-top-right-radius: 12px;
+                        margin-bottom: 20px;
+                        position: relative;
+                    }
+                    .header h1 {
+                        font-size: 36px;
+                        color: #fff;
+                        margin: 0;
+                    }
+                    .header img {
+                        position: absolute;
+                        top: 10px;
+                        left: 10px;
+                        max-width: 100px;
+                    }
+                    .content {
+                        padding: 30px;
+                        text-align: center;
+                    }
+                    p {
+                        font-size: 18px;
+                        color: #333;
+                        margin-bottom: 20px;
+                        line-height: 1.6;
+                    }
+                    .otp {
+                        font-size: 24px;
+                        color: #FF6F00;
+                        font-weight: bold;
+                        margin-bottom: 20px;
+                    }
+                    .btn {
+                        display: inline-block;
+                        padding: 16px 32px;
+                        background-color: #FF6F00;
+                        color: #333;
+                        text-decoration: none;
+                        font-size: 20px;
+                        border-radius: 8px;
+                        transition: background-color 0.3s ease-in-out;
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                        animation: pulse 1s infinite alternate;
+                    }
+                    .btn:hover {
+                        background-color: #FFA726;
+                    }
+                    @keyframes pulse {
+                        from {
+                            transform: scale(1);
+                        }
+                        to {
+                            transform: scale(1.05);
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1><img src="%s" alt="Company Logo"> Email Verification</h1>
                     </div>
-                    <div style="padding: 20px; text-align: center;">
-                        <p style="font-size: 18px; color: #333;">Thank you for registering with us. Please verify your email to activate your account.</p>
-                        <p style="font-size: 16px; color: #333;">Use this OTP to verify your email: %d</p>
-                        <p style="font-size: 16px; color: #333;">Our team will contact you soon.</p>
-                        <a href="%s" style="display: inline-block; padding: 10px 20px; background-color: #FFA726; color: #FFFFFF; text-decoration: none; font-size: 16px; border-radius: 5px;">Verify Email</a>
+                    <div class="content">
+                        <p>Thank you for registering with us. Please verify your email to activate your account.</p>
+                        <p class="otp">Use this OTP to verify your email: %d</p>
+                        <p>Our team will contact you soon.</p>
+                        <a href="%s" class="btn">Verify Email</a>
                     </div>
-                    """, otp, verifyLink);
+                </div>
+            </body>
+            </html>
+            """, logoUrl, otp, verifyLink);
             helper.setTo(email);
             helper.setSubject("Email Verification");
             helper.setText(htmlContent, true);
             javaMailSender.send(mimeMessage);
         } catch (MessagingException e) {
-            e.printStackTrace(); // Handle or log the exception
+            e.printStackTrace();
         }
     }
 

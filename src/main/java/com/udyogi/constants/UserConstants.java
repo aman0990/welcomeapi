@@ -49,7 +49,7 @@ public class UserConstants {
     public static final String FAILED_TO_SEND_OTP = " Failed to send OTP to email: ";
     public static final String  FAILED_TO_VERIFY_ACCOUNT = "Failed to verify account";
     public static final String  ERROR_WHILE_VERIFYING_ACCOUNT = "Error while verifying account";
-    public static final String  ACCOUNT_VERIFIED_SUCCESSFULLY = "Account verified successfully";
+    public static final Boolean  ACCOUNT_VERIFIED_SUCCESSFULLY = Boolean.valueOf("Account verified successfully");
     public static final String  VERIFYING_ACCOUNT = "Verifying account";
     public static final String USER_DELETED_SUCCESSFULLY = "User deleted successfully";
     public static final String FAILED_TO_DELETE_USER = "Failed to delete user";
@@ -110,8 +110,6 @@ public class UserConstants {
     public static final String FAILED_TO_CREATE_HR_ACCOUNT = "Failed to create HR account";
     public static final String ERROR_WHILE_CREATING_HR_ACCOUNT = "Error while creating HR account";
     public static final String HR_NOT_ACTIVE = "HR not active";
-    public static final String INVALID_OTP = "Invalid OTP";
+    public static final Boolean INVALID_OTP = Boolean.valueOf("Invalid OTP");
     public static final String INVALID_INPUT_PROVIDED_FOR_EMAIL_VERIFICATION = "Invalid input provided for email verification";
-    ;
-    ;
 }

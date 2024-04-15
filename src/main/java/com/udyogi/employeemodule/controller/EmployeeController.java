@@ -46,21 +46,20 @@ public class EmployeeController {
     @PostMapping("/verifyEmail/{email}/{otp}")
     public ResponseEntity<String> employeeVerifyEmail(@PathVariable String email, @PathVariable Integer otp) {
         try {
-            if (email == null || otp == null) {
-                return ResponseEntity.badRequest().body(UserConstants.BAD_REQUEST_400);
-            }
-            Boolean verified = employeeService.verifyEmail(email, otp);
-            if (Boolean.TRUE.equals(verified)) {
-                return ResponseEntity.ok(UserConstants.ACCOUNT_VERIFIED_SUCCESSFULLY);
+            var verified = employeeService.verifyEmail(email, otp);
+            if(verified.getStatusCode().equals(HttpStatus.OK)){
+                return ResponseEntity.status(HttpStatus.OK).
+                        body(String.valueOf(UserConstants.ACCOUNT_VERIFIED_SUCCESSFULLY));
+            } else if (verified.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(UserConstants.USER_NOT_FOUND + " "+email);
+            } else if(verified.getStatusCode().equals(HttpStatus.UNAUTHORIZED)){
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(String.valueOf(UserConstants.INVALID_OTP));
             } else {
-                return ResponseEntity.badRequest().body(UserConstants.FAILED_TO_VERIFY_ACCOUNT);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(UserConstants.ERROR_WHILE_VERIFYING_ACCOUNT);
             }
-        } catch (IllegalArgumentException e) {
-            logger.error("Invalid input provided for email verification: email={}, otp={}", email, otp);
-            return ResponseEntity.badRequest().body(UserConstants.INVALID_INPUT_PROVIDED_FOR_EMAIL_VERIFICATION);
         } catch (Exception e) {
             logger.error("Error occurred during employee email verification", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(UserConstants.ERROR_WHILE_VERIFYING_ACCOUNT);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(UserConstants.FAILED_TO_VERIFY_ACCOUNT);
         }
     }
 

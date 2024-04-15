@@ -59,20 +59,27 @@ public class EmployeeService {
         }
     }
 
-    public Boolean verifyEmail(String email, Integer otp) {
+    public ResponseEntity<Boolean> verifyEmail(String email, Integer otp) {
         try {
             EmployeeEntity employeeEntity = employeeRepo.findByEmail(email);
-            if (employeeEntity != null && Objects.equals(employeeEntity.getOtp(), otp)) {
+            if (employeeEntity != null && employeeEntity.getOtp().equals(otp)) {
                 employeeEntity.setVerified(true);
                 employeeRepo.save(employeeEntity);
-                logger.info("Email verification successful for email: {}", email);
-                return true;
+                return ResponseEntity.status(HttpStatus.OK).
+                        body(UserConstants.ACCOUNT_VERIFIED_SUCCESSFULLY);
+            } else if (employeeEntity == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).
+                        body(Boolean.valueOf(UserConstants.USER_NOT_FOUND));
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).
+                        body(UserConstants.INVALID_OTP);
             }
-        } catch (DataAccessException e) {
-            logger.error("Error occurred during email verification", e);
-            return false;
         }
-        return false;
+        catch (DataAccessException e) {
+            logger.error("Error occurred during employee email verification", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).
+                    body(Boolean.valueOf(UserConstants.FAILED_TO_VERIFY_ACCOUNT));
+        }
     }
 
     public ResponseEntity<String> login(String email, String password) {
