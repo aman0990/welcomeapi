@@ -1,10 +1,9 @@
 package com.udyogi.employeemodule.entities;
 
+import org.hibernate.annotations.GenericGenerator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.EmployerAdmin;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.GenericGenerator;
 
 @Getter
 @Setter
@@ -27,12 +26,15 @@ public class EmployeeEntity {
     @JsonIgnore
     private Integer otp;
     private Boolean verified;
+    private Boolean fresher;
     private String role;
+    @Lob
+    private byte[] profilePic;
     @GenericGenerator(name = "custom-id-generator", strategy = "com.udyogi.util.CustomIdGenerator")
     @Column(name = "custom_id", nullable = false, unique = true, length = 50)
     private String customId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    /*@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employer_id", referencedColumnName = "employer_id")
-    private EmployerAdmin employer;
+    private EmployerAdmin employer;*/
 }

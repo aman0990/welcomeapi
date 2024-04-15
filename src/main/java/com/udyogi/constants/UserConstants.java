@@ -113,4 +113,9 @@ public class UserConstants {
     public static final Boolean INVALID_OTP = Boolean.valueOf("Invalid OTP");
     public static final String INVALID_INPUT_PROVIDED_FOR_EMAIL_VERIFICATION = "Invalid input provided for email verification";
     public static final String USER_DETAILS_CAN_NOT_BE_NULL = "User details can not be null";
+    public static final String LOGIN_SUCCESSFUL_MESSAGE = "Login successful";
+    public static final String EXPERIENCE_DETAILS_ADDED_SUCCESSFULLY = "Experience details added successfully";
+    public static final String FAILED_TO_ADD_EXPERIENCE_DETAILS = "Failed to add experience details";
+    public static final String EDUCATION_DETAILS_ADDED_SUCCESSFULLY = "Education details added successfully";
+    public static final String FAILED_TO_ADD_EDUCATION_DETAILS = "Failed to add education details";
 }
