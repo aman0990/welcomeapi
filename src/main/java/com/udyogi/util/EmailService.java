@@ -133,7 +133,7 @@ public class EmailService {
             helper.setText(htmlContent, true);
             javaMailSender.send(mimeMessage);
         } catch (MessagingException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -184,7 +184,7 @@ public class EmailService {
                     """.formatted(otp);
             senderMethod(email, mimeMessage, helper, htmlContent);
         } catch (MessagingException | UnsupportedEncodingException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -203,7 +203,7 @@ public class EmailService {
                     """;
             senderMethod(email, mimeMessage, helper, htmlContent);
         } catch (MessagingException | UnsupportedEncodingException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 }
