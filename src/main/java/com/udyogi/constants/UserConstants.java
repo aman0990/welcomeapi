@@ -118,4 +118,9 @@ public class UserConstants {
     public static final String FAILED_TO_ADD_EXPERIENCE_DETAILS = "Failed to add experience details";
     public static final String EDUCATION_DETAILS_ADDED_SUCCESSFULLY = "Education details added successfully";
     public static final String FAILED_TO_ADD_EDUCATION_DETAILS = "Failed to add education details";
+    public static final String FILE_CAN_NOT_BE_NULL = "File can not be null";
+    public static final String PROFILE_PIC_ADDED_SUCCESSFULLY = "Profile pic added successfully";
+    public static final String FAILED_TO_ADD_PROFILE_PIC = "Failed to add profile pic";
+    public static final String RESUME_ADDED_SUCCESSFULLY = "Resume added successfully";
+    public static final String FAILED_TO_ADD_RESUME = "Failed to add resume";
 }

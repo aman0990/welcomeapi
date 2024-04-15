@@ -6,14 +6,19 @@ import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.EmployerAdmin;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.HrEntity;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.repositories.EmployerAdminRepo;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.repositories.HrRepo;
-import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Random;
+import java.util.UUID;
 
 @Service
-@AllArgsConstructor
 public class UtilService {
 
     private final Random random = new Random();
@@ -21,6 +26,16 @@ public class UtilService {
     private final HrRepo hrRepo;
     private final EmployerAdminRepo employerAdminRepo;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${file.upload-dir}")
+    private String uploadDir;
+
+    public UtilService(EmployeeRepo employeeRepo, HrRepo hrRepo, EmployerAdminRepo employerAdminRepo, PasswordEncoder passwordEncoder) {
+        this.employeeRepo = employeeRepo;
+        this.hrRepo = hrRepo;
+        this.employerAdminRepo = employerAdminRepo;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     // Otp Generating 6 digits
     public int generateOtp() {
@@ -45,5 +60,22 @@ public class UtilService {
             return hrEntity.getOtp() == otp;
         }else
             return false;
+    }
+
+    public String storeFile(MultipartFile file) throws FileStorageException {
+        try {
+            // Create the directory if it doesn't exist
+            Path directory = Paths.get(uploadDir).toAbsolutePath().normalize();
+            Files.createDirectories(directory);
+            // Generate a unique file name
+            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+            // Set the target location
+            Path targetLocation = directory.resolve(fileName);
+            // Copy the file to the target location
+            Files.copy(file.getInputStream(), targetLocation);
+            return fileName; // Return the stored file name or path
+        } catch (IOException ex) {
+            throw new FileStorageException("Failed to store file " + file.getOriginalFilename(), ex);
+        }
     }
 }
