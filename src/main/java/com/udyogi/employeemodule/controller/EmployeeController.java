@@ -50,7 +50,7 @@ public class EmployeeController {
                 return ResponseEntity.badRequest().body(UserConstants.BAD_REQUEST_400);
             }
             Boolean verified = employeeService.verifyEmail(email, otp);
-            if (verified) {
+            if (Boolean.TRUE.equals(verified)) {
                 return ResponseEntity.ok(UserConstants.ACCOUNT_VERIFIED_SUCCESSFULLY);
             } else {
                 return ResponseEntity.badRequest().body(UserConstants.FAILED_TO_VERIFY_ACCOUNT);
