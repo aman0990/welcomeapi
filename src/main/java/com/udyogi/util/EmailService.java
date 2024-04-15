@@ -19,25 +19,28 @@ public class EmailService {
         this.javaMailSender = javaMailSender;
     }
 
-    public void sendVerificationEmail(String email, @RequestBody Integer otp) {
+    public void sendVerificationEmail(String email, Integer otp) {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
         try {
-            var verifyLink = "http://localhost:8081/verifyEmail/" + email + "/" + otp;
-            var htmlContent = """
-                    <h1 style="font-size: 24px; color: #4E342E;">Email Verification</h1>
-                    <div style="text-align: center; padding: 20px;">
-                        <p style="font-size: 18px; color: #5D4037;">Thank you for registering with us. Please verify your email to activate your account.</p>
-                        <p style="font-size: 16px; color: #333;">Our team will contact you soon.</p>
-                        <a href= "%s" target="_blank" style="display: inline-block; padding: 10px 20px; background-color: #8D6E63; color: #FFFFFF; text-decoration: none; font-size: 16px; border-radius: 5px;">Verify Email</a>
+            String verifyLink = "http://localhost:8081/api/v1/employee/verifyEmail/" + email + "/" + otp;
+            String htmlContent = String.format("""
+                    <div style="background-color: #FFA726; padding: 20px; text-align: center;">
+                        <h1 style="font-size: 24px; color: #FFFFFF;">Email Verification</h1>
                     </div>
-                    <p style="font-size: 14px; color: #333;">Please refer to <a href="C:\\Users\\anand\\OneDrive\\Desktop\\LawyerTalk\\target\\surefire-reports" target="_blank">surefire-reports</a> for the individual test results.</p>
-                    <p style="font-size: 14px; color: #333;">Please refer to dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.</p>
-                    """.formatted(verifyLink);
-
-            senderMethod(email, mimeMessage, helper, htmlContent);
-        } catch (MessagingException | UnsupportedEncodingException e) {
-            e.printStackTrace();
+                    <div style="padding: 20px; text-align: center;">
+                        <p style="font-size: 18px; color: #333;">Thank you for registering with us. Please verify your email to activate your account.</p>
+                        <p style="font-size: 16px; color: #333;">Use this OTP to verify your email: %d</p>
+                        <p style="font-size: 16px; color: #333;">Our team will contact you soon.</p>
+                        <a href="%s" style="display: inline-block; padding: 10px 20px; background-color: #FFA726; color: #FFFFFF; text-decoration: none; font-size: 16px; border-radius: 5px;">Verify Email</a>
+                    </div>
+                    """, otp, verifyLink);
+            helper.setTo(email);
+            helper.setSubject("Email Verification");
+            helper.setText(htmlContent, true);
+            javaMailSender.send(mimeMessage);
+        } catch (MessagingException e) {
+            e.printStackTrace(); // Handle or log the exception
         }
     }
 

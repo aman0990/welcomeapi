@@ -27,6 +27,7 @@ public class EmployeeEntity {
     @JsonIgnore
     private Integer otp;
     private Boolean verified;
+    private String role;
     @GenericGenerator(name = "custom-id-generator", strategy = "com.udyogi.util.CustomIdGenerator")
     @Column(name = "custom_id", nullable = false, unique = true, length = 50)
     private String customId;

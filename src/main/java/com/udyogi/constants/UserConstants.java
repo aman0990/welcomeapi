@@ -110,6 +110,8 @@ public class UserConstants {
     public static final String FAILED_TO_CREATE_HR_ACCOUNT = "Failed to create HR account";
     public static final String ERROR_WHILE_CREATING_HR_ACCOUNT = "Error while creating HR account";
     public static final String HR_NOT_ACTIVE = "HR not active";
+    public static final String INVALID_OTP = "Invalid OTP";
+    public static final String INVALID_INPUT_PROVIDED_FOR_EMAIL_VERIFICATION = "Invalid input provided for email verification";
     ;
     ;
 }
