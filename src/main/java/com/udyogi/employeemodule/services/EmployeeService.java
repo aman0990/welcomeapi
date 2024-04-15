@@ -55,8 +55,11 @@ public class EmployeeService {
 
     public void login(String email, String password) {
         EmployeeEntity employeeEntity = employeeRepo.findByEmail(email);
-        if(employeeEntity != null && utilService.verifyPassword(password, employeeEntity.getPassword())) {
+        if(employeeEntity != null &&
+                utilService.verifyPassword(password, employeeEntity.getPassword())) {
             System.out.println("Login successful");
+        }else {
+            System.out.println("Login failed , Not Verified");
         }
     }
 

@@ -2,7 +2,6 @@ package com.udyogi.employeemodule.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.EmployerAdmin;
-import com.udyogi.util.CustomIdGenerator;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
@@ -28,8 +27,6 @@ public class EmployeeEntity {
     @JsonIgnore
     private Integer otp;
     private Boolean verified;
-    // Custom ID generation for EmployeeEntity
-    /*UDY-000001*/
     @GenericGenerator(name = "custom-id-generator", strategy = "com.udyogi.util.CustomIdGenerator")
     @Column(name = "custom_id", nullable = false, unique = true, length = 50)
     private String customId;

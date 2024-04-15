@@ -3,6 +3,10 @@ package com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.enums.EmploymentType;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.enums.JobStatus;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -10,6 +14,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 public class JobPost {
     @Id

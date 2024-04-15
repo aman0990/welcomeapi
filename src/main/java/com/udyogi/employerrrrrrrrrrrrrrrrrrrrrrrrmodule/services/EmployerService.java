@@ -49,8 +49,11 @@ public class EmployerService {
         employerAdmin.setEstablishedYear(adminSignUp.getEstablishedYear());
         employerAdmin.setIncorporateId(adminSignUp.getIncorporateId());
         employerAdmin.setAboutCompany(adminSignUp.getAboutCompany());
+        employerAdmin.setOtp(utilService.generateOtp());
+        employerAdmin.setVerified(false);
         employerAdmin.setPassword(passwordEncoder.encode(adminSignUp.getPassword()));
         employerAdmin.setCustomId(generateEmployerId(adminSignUp.getCompanyName()));
+        emailService.sendVerificationEmail(adminSignUp.getEmail(), employerAdmin.getOtp());
         employerAdminRepo.save(employerAdmin);
         return "Employer added successfully";
     }
@@ -85,15 +88,17 @@ public class EmployerService {
 
     public String addHr(String email, Long id) {
         HrEntity hrEntity = new HrEntity();
-        hrEntity.setHrEmail(email);
-        employerAdminRepo.findById(id).ifPresent(employerAdmin -> {
+        hrEntity.setEmail(email);
+        hrEntity.setEmployerAdmin(employerAdminRepo.findById(id).orElseThrow());
+        /*employerAdminRepo.findById(id).ifPresent(employerAdmin -> {
             employerAdmin.getHrEntities().add(hrEntity);
             employerAdminRepo.save(employerAdmin);
-        });
-        if(Objects.nonNull(hrEntity.getHrEmail())) {
+        });*/
+        if(Objects.nonNull(hrEntity.getEmail())) {
             var otp = utilService.generateOtp();
             hrEntity.setOtp(otp);
             emailService.sendOtptoHr(email, otp);
+            hrRepo.save(hrEntity);
         }
         return "HR added successfully";
     }
@@ -103,7 +108,7 @@ public class EmployerService {
         if(Objects.isNull(hrCreateDto)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(UserConstants.NOT_ACCEPTABLE_406);
         }
-        if(!hrEntity.getIsHrActive()){
+        if(Boolean.FALSE.equals(hrEntity.getIsHrActive())){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(UserConstants.HR_NOT_ACTIVE);
         }else {
             hrEntity.setHrDesignation(hrCreateDto.getHrDesignation());

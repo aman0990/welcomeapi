@@ -13,8 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/employer")
+@RequestMapping("/api/v1/employer")
 public class EmployerAdminController {
+
     private final EmployerService employerService;
     private static final Logger log = LoggerFactory.getLogger(EmployerAdminController.class);
 

@@ -36,6 +36,7 @@ public class EmployerAdmin {
     @JsonIgnore
     private String password;
     private Integer otp;
+    private Boolean verified;
     @OneToMany(mappedBy = "employerAdmin", cascade = CascadeType.ALL)
     private List<JobPost> jobPosts = new ArrayList<>();
 
@@ -52,7 +53,6 @@ public class EmployerAdmin {
     @Column(name = "custom_id", nullable = false, unique = true, length = 50)
     private String customId;
 
-    @OneToMany(mappedBy = "hrId", cascade = CascadeType.ALL)
-    @JoinColumn(name = "employer_id")
-    private List<HrEntity> hrEntities = new ArrayList<>();
+    @OneToMany(mappedBy = "employerAdmin")
+    private List<HrEntity> hrEntities;
 }
