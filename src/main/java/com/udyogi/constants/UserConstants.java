@@ -112,4 +112,5 @@ public class UserConstants {
     public static final String HR_NOT_ACTIVE = "HR not active";
     public static final Boolean INVALID_OTP = Boolean.valueOf("Invalid OTP");
     public static final String INVALID_INPUT_PROVIDED_FOR_EMAIL_VERIFICATION = "Invalid input provided for email verification";
+    public static final String USER_DETAILS_CAN_NOT_BE_NULL = "User details can not be null";
 }

@@ -38,7 +38,8 @@ public class EmployeeService {
             }
             EmployeeEntity existingEmployee = employeeRepo.findByEmail(signUpDto.getEmail());
             if (existingEmployee != null) {
-                return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body(UserConstants.USER_WITH_USERNAME_OR_EMAIL_ALREADY_EXISTS);
+                return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).
+                        body(UserConstants.USER_WITH_USERNAME_OR_EMAIL_ALREADY_EXISTS);
             }
             EmployeeEntity employeeEntity = EmployeeMapper.mapSignUpDtoToEmployeeEntity(signUpDto);
             int otp = utilService.generateOtp();
@@ -52,10 +53,12 @@ public class EmployeeService {
             employeeEntity.setPassword(passwordEncoder.encode(signUpDto.getPassword()));
             employeeRepo.save(employeeEntity);
             emailService.sendVerificationEmail(signUpDto.getEmail(), otp);
-            return ResponseEntity.status(HttpStatus.CREATED).body(UserConstants.USER_ACCOUNT_CREATED_SUCCESSFULLY);
+            return ResponseEntity.status(HttpStatus.CREATED).
+                    body(UserConstants.USER_ACCOUNT_CREATED_SUCCESSFULLY);
         } catch (IllegalArgumentException | DataAccessException e) {
             logger.error("Error occurred during employee signup", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(UserConstants.FAILED_TO_CREATE_USER_ACCOUNT);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).
+                    body(UserConstants.FAILED_TO_CREATE_USER_ACCOUNT);
         }
     }
 
@@ -86,15 +89,19 @@ public class EmployeeService {
         try {
             EmployeeEntity employeeEntity = employeeRepo.findByEmail(email);
             if (employeeEntity != null && passwordEncoder.matches(password, employeeEntity.getPassword())) {
-                return ResponseEntity.status(HttpStatus.OK).body(UserConstants.LOGIN_SUCCESSFUL);
+                return ResponseEntity.status(HttpStatus.OK).
+                        body(UserConstants.LOGIN_SUCCESSFUL);
             } else if(employeeEntity == null){
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(UserConstants.USER_NOT_FOUND);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).
+                        body(UserConstants.USER_NOT_FOUND);
             } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(UserConstants.INVALID_CREDENTIALS);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).
+                        body(UserConstants.INVALID_CREDENTIALS);
             }
         } catch (DataAccessException e) {
             logger.error("Error occurred during employee login", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(UserConstants.FAILED_TO_PROCEED_LOGIN);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).
+                    body(UserConstants.FAILED_TO_PROCEED_LOGIN);
         }
     }
 }
