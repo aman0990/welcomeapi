@@ -34,12 +34,10 @@ public class EmployeeController {
     public ResponseEntity<String> employeeSignUp(@Valid @RequestBody SignUpDto signUpDto) {
         try {
             logger.info("Received request to sign up employee with data: {}", signUpDto);
-
             if (signUpDto == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(UserConstants.USER_DETAILS_CAN_NOT_BE_NULL);
             }
-
             var signedUp = employeeService.signup(signUpDto);
             if (signedUp.getStatusCode().equals(HttpStatus.CREATED)) {
                 return ResponseEntity.status(HttpStatus.CREATED)
@@ -73,7 +71,6 @@ public class EmployeeController {
     public ResponseEntity<String> employeeVerifyEmail(@PathVariable String email, @PathVariable Integer otp) {
         try {
             logger.info("Received request to verify email: {}, OTP: {}", email, otp);
-
             var verified = employeeService.verifyEmail(email, otp);
             if (verified.getStatusCode().equals(HttpStatus.OK)) {
                 return ResponseEntity.status(HttpStatus.OK)
@@ -137,12 +134,10 @@ public class EmployeeController {
     public ResponseEntity<String> addExperienceDetails(@PathVariable Long id, @Valid @RequestBody ExperienceDetailsDto experienceDetailsDto) {
         try {
             logger.info("Received request to add experience details for user with ID: {}", id);
-
             if (experienceDetailsDto == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(UserConstants.USER_DETAILS_CAN_NOT_BE_NULL);
             }
-
             var added = employeeService.addExperienceDetails(id, experienceDetailsDto);
             if (added.getStatusCode().equals(HttpStatus.OK)) {
                 return ResponseEntity.status(HttpStatus.CREATED)
@@ -172,12 +167,10 @@ public class EmployeeController {
     public ResponseEntity<String> addEducationDetails(@PathVariable Long id, @Valid @RequestBody EducationDetailsDto educationDetailsDto) {
         try {
             logger.info("Received request to add education details for user with ID: {}", id);
-
             if (educationDetailsDto == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(UserConstants.USER_DETAILS_CAN_NOT_BE_NULL);
             }
-
             var added = employeeService.addEducationDetails(id, educationDetailsDto);
             if (added.getStatusCode().equals(HttpStatus.OK)) {
                 return ResponseEntity.status(HttpStatus.CREATED)

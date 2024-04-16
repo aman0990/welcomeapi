@@ -21,6 +21,10 @@ public class SecurityConfig {
                                 .requestMatchers("/api/v1/employee/employeeSignUp", "/api/v1/employee/get").permitAll()
                                 .requestMatchers("/api/v1/employee/login", "/api/v1/employer/user").permitAll()
                                 .anyRequest().authenticated())
+                .sessionManagement(sessionManagement ->
+                        sessionManagement
+                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .formLogin(withDefaults())
                 .oauth2Login(withDefaults())
                 .httpBasic(withDefaults());
 
