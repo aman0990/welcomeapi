@@ -57,6 +57,10 @@ public class EmployeeController {
                     .body(UserConstants.FAILED_TO_CREATE_USER_ACCOUNT);
         }
     }
+    @GetMapping("/get")
+    public String home() {
+        return "Welcome to Udyogi Employee Module";
+    }
 
     /**
      * Endpoint to verify employee's email with OTP.

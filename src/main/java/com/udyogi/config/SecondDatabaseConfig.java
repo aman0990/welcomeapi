@@ -1,3 +1,4 @@
+/*
 package com.udyogi.config;
 
 import jakarta.persistence.EntityManagerFactory;
@@ -36,3 +37,4 @@ public class SecondDatabaseConfig {
         return new JpaTransactionManager(entityManagerFactory);
     }
 }
+*/

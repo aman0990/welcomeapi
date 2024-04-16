@@ -21,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -38,7 +39,20 @@ public class EmployerService {
 
 
     public String addEmployer(AdminSignUp adminSignUp) {
-        EmployerAdmin employerAdmin = new EmployerAdmin();
+        return Optional.ofNullable(adminSignUp)
+                .map(admin -> {
+                    EmployerAdmin employerAdmin = new EmployerAdmin();
+                    BeanUtils.copyProperties(adminSignUp, employerAdmin);
+                    employerAdmin.setOtp(utilService.generateOtp());
+                    employerAdmin.setVerified(false);
+                    employerAdmin.setPassword(passwordEncoder.encode(adminSignUp.getPassword()));
+                    employerAdmin.setCustomId(generateEmployerId(adminSignUp.getCompanyName()));
+                    employerAdminRepo.save(employerAdmin);
+                    emailService.sendVerificationEmail(adminSignUp.getEmail(), employerAdmin.getOtp());
+                    return "Employer added successfully";
+                })
+                .orElse("Employer not found");
+        /*EmployerAdmin employerAdmin = new EmployerAdmin();
         employerAdmin.setCompanyName(adminSignUp.getCompanyName());
         employerAdmin.setCompanyType(adminSignUp.getCompanyType());
         employerAdmin.setMobileNumber(adminSignUp.getMobileNumber());
@@ -55,7 +69,7 @@ public class EmployerService {
         employerAdmin.setCustomId(generateEmployerId(adminSignUp.getCompanyName()));
         emailService.sendVerificationEmail(adminSignUp.getEmail(), employerAdmin.getOtp());
         employerAdminRepo.save(employerAdmin);
-        return "Employer added successfully";
+        return "Employer added successfully";*/
     }
 
     public String generateEmployerId(String companyName) {

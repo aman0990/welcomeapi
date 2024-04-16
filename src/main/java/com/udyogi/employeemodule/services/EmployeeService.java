@@ -117,7 +117,6 @@ public class EmployeeService {
     public ResponseEntity<loginResponseDto> login(loginDto loginDto) {
         try {
             EmployeeEntity employeeEntity = employeeRepo.findByEmail(loginDto.getEmail());
-
             if (employeeEntity != null && passwordEncoder.matches(loginDto.getPassword(), employeeEntity.getPassword())) {
                 return ResponseEntity.status(HttpStatus.OK)
                         .body(new loginResponseDto(employeeEntity, UserConstants.LOGIN_SUCCESSFUL, UserConstants.LOGIN_SUCCESSFUL_MESSAGE));

@@ -1,3 +1,4 @@
+/*
 package com.udyogi.config;
 import javax.sql.DataSource;
 
@@ -24,7 +25,7 @@ public class FirstDatabaseConfig  {
             EntityManagerFactoryBuilder builder, @Qualifier("firstDataSource") DataSource dataSource) {
         return builder
                 .dataSource(dataSource)
-                .packages("com.example.firstdb.entity") // Package containing first database entity classes
+                .packages("com.example.firstdb.entity")
                 .persistenceUnit("first")
                 .build();
     }
@@ -37,3 +38,4 @@ public class FirstDatabaseConfig  {
 }
 
 
+*/

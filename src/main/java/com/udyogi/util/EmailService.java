@@ -24,7 +24,6 @@ public class EmailService {
         try {
             String verifyLink = "http://localhost:8081/api/v1/employee/verifyEmail/" + email + "/" + otp;
             String logoUrl = "https://vrpigroup.com/static/media/vrpiLogo.c468638808a1a63abd35.png";
-
             String htmlContent = String.format("""
             <!DOCTYPE html>
             <html lang="en">
