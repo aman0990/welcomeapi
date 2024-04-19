@@ -35,7 +35,7 @@ public class EmployerAdmin {
     private String aboutCompany;
     @JsonIgnore
     private String password;
-    private Integer otp;
+    private Long otp;
     private Boolean verified;
     @OneToMany(mappedBy = "employerAdmin", cascade = CascadeType.ALL)
     private List<JobPost> jobPosts = new ArrayList<>();

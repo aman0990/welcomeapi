@@ -2,7 +2,6 @@ package com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Lob;
-import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

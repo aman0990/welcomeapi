@@ -1,3 +1,4 @@
+/*
 package com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.services;
 
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -12,3 +13,4 @@ public class GoogleloginService {
         return Optional.ofNullable(principal.getAttributes());
     }
 }
+*/

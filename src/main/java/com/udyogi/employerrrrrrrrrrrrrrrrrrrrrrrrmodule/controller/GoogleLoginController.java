@@ -1,3 +1,4 @@
+/*
 package com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.controller;
 
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.services.GoogleloginService;
@@ -23,4 +24,4 @@ public class GoogleLoginController {
         Optional<Map<String, Object>> user = googleloginService.getUser(principal);
         return user.orElseGet(() -> Collections.singletonMap("error", "User not found"));
     }
-}
+}*/

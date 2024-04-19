@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/v1/employer")
 public class EmployerAdminController {
@@ -76,12 +78,27 @@ public class EmployerAdminController {
     }
 
     @PostMapping("/verify-Hr-Otp/{email}")
-    public ResponseEntity<String> verifyHrOtp(@PathVariable String email, @RequestBody Integer otp) {
+    public ResponseEntity<String> verifyHrOtp(@PathVariable String email, @RequestBody Map<String, String> requestBody) {
         try {
-            String msg=employerService.verifyHrOtp(email,otp);
+            // Extract the 'otp' value from the request body
+            String otpStr = requestBody.get("otp");
+
+            // Parse the 'otp' value to Long (if needed)
+            // In this case, converting to Long is optional based on your service method's requirement
+            Long otp = Long.valueOf(otpStr); // This might throw NumberFormatException if 'otpStr' is not a valid Long
+
+            // Call the service method to verify OTP
+            String msg = employerService.verifyHrOtp(email, otp);
             log.info("HR verified successfully");
+
+            // Return success response
             return new ResponseEntity<>(msg, HttpStatus.OK);
+        } catch (NumberFormatException e) {
+            // Handle NumberFormatException (e.g., invalid 'otp' format)
+            log.error("Invalid OTP format: " , e);
+            return new ResponseEntity<>("Invalid OTP format", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
+            // Handle other exceptions
             log.error("Error occurred while verifying HR", e);
             return new ResponseEntity<>("Error occurred while verifying HR", HttpStatus.INTERNAL_SERVER_ERROR);
         }

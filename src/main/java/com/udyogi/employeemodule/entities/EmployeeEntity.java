@@ -24,7 +24,7 @@ public class EmployeeEntity {
     private String password;
     private String gender;
     @JsonIgnore
-    private Integer otp;
+    private Long otp;
     private Boolean verified;
     private Boolean fresher;
     private String role;

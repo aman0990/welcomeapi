@@ -58,7 +58,7 @@ public class EmployeeService {
             }
 
             EmployeeEntity employeeEntity = EmployeeMapper.mapSignUpDtoToEmployeeEntity(signUpDto);
-            int otp = utilService.generateOtp();
+            var otp = utilService.generateOtp();
             employeeEntity.setOtp(otp);
             employeeEntity.setVerified(false);
             employeeEntity.setRole("EMPLOYEE");
@@ -68,7 +68,7 @@ public class EmployeeService {
             employeeEntity.setCustomId(customIdGenerator.generateEmployeeId());
             employeeEntity.setPassword(passwordEncoder.encode(signUpDto.getPassword()));
             employeeRepo.save(employeeEntity);
-            emailService.sendVerificationEmail(signUpDto.getEmail(), otp);
+            emailService.sendVerificationEmail(signUpDto.getEmail(), Math.toIntExact(otp));
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(UserConstants.USER_ACCOUNT_CREATED_SUCCESSFULLY);
         } catch (IllegalArgumentException | DataAccessException e) {

@@ -48,7 +48,7 @@ public class EmployerService {
                     employerAdmin.setPassword(passwordEncoder.encode(adminSignUp.getPassword()));
                     employerAdmin.setCustomId(generateEmployerId(adminSignUp.getCompanyName()));
                     employerAdminRepo.save(employerAdmin);
-                    emailService.sendVerificationEmail(adminSignUp.getEmail(), employerAdmin.getOtp());
+                    emailService.sendVerificationEmail(adminSignUp.getEmail(), Math.toIntExact(employerAdmin.getOtp()));
                     return "Employer added successfully";
                 })
                 .orElse("Employer not found");
@@ -102,18 +102,15 @@ public class EmployerService {
 
     public String addHr(String email, Long id) {
         HrEntity hrEntity = new HrEntity();
-        hrEntity.setEmail(email);
-        hrEntity.setEmployerAdmin(employerAdminRepo.findById(id).orElseThrow());
-        /*employerAdminRepo.findById(id).ifPresent(employerAdmin -> {
-            employerAdmin.getHrEntities().add(hrEntity);
-            employerAdminRepo.save(employerAdmin);
-        });*/
-        if(Objects.nonNull(hrEntity.getEmail())) {
-            var otp = utilService.generateOtp();
-            hrEntity.setOtp(otp);
-            emailService.sendOtptoHr(email, otp);
-            hrRepo.save(hrEntity);
+        var hrEmail = hrRepo.findByEmail(email);
+        if(hrEmail != null) {
+            return "HR already exists";
         }
+        var otp = utilService.generateOtp();
+        hrEntity.setOtp(otp);
+        emailService.sendOtptoHr(email, Math.toIntExact(otp));
+        hrEntity.setEmployerAdmin(employerAdminRepo.findById(id).get());
+        hrRepo.save(hrEntity);
         return "HR added successfully";
     }
 
@@ -130,6 +127,8 @@ public class EmployerService {
             hrEntity.setHrName(hrCreateDto.getHrName());
             hrEntity.setWorkExperience(hrCreateDto.getWorkExperience());
             hrEntity.setWorkLocation(hrCreateDto.getWorkLocation());
+            hrEntity.setHrProfilePic(hrCreateDto.getHrProfilePic());
+            hrEntity.setHrPassword(passwordEncoder.encode(hrCreateDto.getHrPassword()));
             var hrEmail = employerAdminRepo.findByEmail(email);
             if (Objects.nonNull(hrEmail)) {
                 employerAdminRepo.save(hrEmail);
@@ -141,7 +140,7 @@ public class EmployerService {
         }
     }
 
-    public String verifyHrOtp(String email, Integer otp) {
+    public String verifyHrOtp(String email, Long otp) {
         if(Boolean.TRUE.equals(utilService.verifyEmail(email, otp))) {
             HrEntity hrEntity = new HrEntity();
             hrEntity.setIsHrActive(true);

@@ -24,7 +24,7 @@ public class HrEntity {
     private String hrDesignation;
     private String workLocation;
     private Boolean isHrActive;
-    private Integer otp;
+    private Long otp;
     @Lob
     private byte[] hrProfilePic;
     private String workExperience;

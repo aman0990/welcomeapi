@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
 
@@ -38,20 +39,20 @@ public class UtilService {
     }
 
     // Otp Generating 6 digits
-    public int generateOtp() {
-        return random.nextInt(900000) + 100000;
+    public Long generateOtp() {
+        return (long) (random.nextInt(900000) + 100000);
     }
 
     public boolean verifyPassword(String password, String password1) {
         return passwordEncoder.matches(password, password1);
     }
 
-    public Boolean verifyEmail(String email, int otp) {
+    public Boolean verifyEmail(String email, Long otp) {
         if(email == null || otp == 0) {
             return false;
         }else if(employeeRepo.existsByEmail(email)){
             EmployeeEntity employeeEntity = employeeRepo.findByEmail(email);
-            return employeeEntity.getOtp() == otp;
+            return Objects.equals(employeeEntity.getOtp(), otp);
         } else if (employerAdminRepo.existsByEmail(email)) {
             EmployerAdmin employerAdmin = employerAdminRepo.findByEmail(email);
             return employerAdmin.getOtp() == otp;
