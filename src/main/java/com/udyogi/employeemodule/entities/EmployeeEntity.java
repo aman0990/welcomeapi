@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Set;
+
 @Getter
 @Setter
 @Entity
@@ -34,6 +36,9 @@ public class EmployeeEntity {
     @Column(name = "custom_id", nullable = false, unique = true, length = 50)
     private String customId;
 
+    @JsonIgnore
+    @OneToMany(mappedBy="employee",fetch=FetchType.EAGER)
+    private Set<Authority> authorities;
     /*@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employer_id", referencedColumnName = "employer_id")
     private EmployerAdmin employer;*/
