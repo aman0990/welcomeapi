@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 
@@ -48,19 +49,28 @@ public class UtilService {
     }
 
     public Boolean verifyEmail(String email, Long otp) {
-        if(email == null || otp == 0) {
+        if (email == null || otp == 0) {
             return false;
-        }else if(employeeRepo.existsByEmail(email)){
-            EmployeeEntity employeeEntity = employeeRepo.findByEmail(email);
-            return Objects.equals(employeeEntity.getOtp(), otp);
+        } else if (employeeRepo.existsByEmail(email)) {
+            var unique = uniqueEmail(email);
+            if (Boolean.FALSE.equals(unique)) {
+                EmployeeEntity employeeEntity = employeeRepo.findByEmail(email);
+                return Objects.equals(employeeEntity.getOtp(), otp);
+            }
         } else if (employerAdminRepo.existsByEmail(email)) {
-            EmployerAdmin employerAdmin = employerAdminRepo.findByEmail(email);
-            return employerAdmin.getOtp() == otp;
-        }else if (hrRepo.existsByEmail(email)) {
-            HrEntity hrEntity = hrRepo.findByEmail(email);
-            return hrEntity.getOtp() == otp;
-        }else
-            return false;
+            var unique = uniqueEmail(email);
+            if (Boolean.FALSE.equals(unique)) {
+                EmployerAdmin employerAdmin = employerAdminRepo.findByEmail(email);
+                return Objects.equals(employerAdmin.getOtp(), otp);
+            }
+        } else if (hrRepo.existsByEmail(email)) {
+            var unique = uniqueEmail(email);
+            if (Boolean.FALSE.equals(unique)) {
+                HrEntity hrEntity = hrRepo.findByEmail(email);
+                return Objects.equals(hrEntity.getOtp(), otp);
+            }
+        }
+        return false;
     }
 
     public String storeFile(MultipartFile file) throws FileStorageException {
@@ -78,5 +88,16 @@ public class UtilService {
         } catch (IOException ex) {
             throw new FileStorageException("Failed to store file " + file.getOriginalFilename(), ex);
         }
+    }
+
+    // checking if email of employee, employer and hr all are active or not
+    public Boolean uniqueEmail(String email) {
+        return Optional.ofNullable(employeeRepo.findByEmail(email))
+                .map(EmployeeEntity::getVerified)
+                .orElse(Optional.ofNullable(employerAdminRepo.findByEmail(email))
+                        .map(EmployerAdmin::getVerified)
+                        .orElse(Optional.ofNullable(hrRepo.findByEmail(email))
+                                .map(HrEntity::getIsHrActive)
+                                .orElse(false)));
     }
 }

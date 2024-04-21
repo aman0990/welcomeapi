@@ -110,6 +110,7 @@ public class EmployerService {
         hrEntity.setOtp(otp);
         emailService.sendOtptoHr(email, Math.toIntExact(otp));
         hrEntity.setEmployerAdmin(employerAdminRepo.findById(id).get());
+        hrEntity.setEmail(email);
         hrRepo.save(hrEntity);
         return "HR added successfully";
     }
@@ -145,7 +146,7 @@ public class EmployerService {
             HrEntity hrEntity = new HrEntity();
             hrEntity.setIsHrActive(true);
             hrRepo.save(hrEntity);
-            updateHrProfile(email, new HrCreateDto());
+            //updateHrProfile(email, new HrCreateDto());
             return "HR verified successfully";
         }
         return "Error occurred while verifying HR";
