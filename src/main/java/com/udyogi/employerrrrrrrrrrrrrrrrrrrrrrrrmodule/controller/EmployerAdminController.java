@@ -110,14 +110,17 @@ public class EmployerAdminController {
             var updated = employerService.updateHrProfile(email,hrCreateDto);
             log.info("HR profile updated successfully");
             if(updated != null){
-                return ResponseEntity.status(HttpStatus.CREATED).body(UserConstants.HR_ACCOUNT_CREATED_SUCCESSFULLY);
+                return ResponseEntity.status(HttpStatus.CREATED).
+                        body(UserConstants.HR_ACCOUNT_CREATED_SUCCESSFULLY);
             }else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(UserConstants.ERROR_WHILE_CREATING_HR_ACCOUNT);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).
+                        body(UserConstants.ERROR_WHILE_CREATING_HR_ACCOUNT);
             }
         } catch (Exception e) {
             e.printStackTrace();
             log.error("Error occurred while updating HR profile", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(UserConstants.FAILED_TO_CREATE_HR_ACCOUNT);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).
+                    body(UserConstants.FAILED_TO_CREATE_HR_ACCOUNT);
         }
     }
 }
