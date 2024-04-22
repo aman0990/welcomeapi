@@ -1,5 +1,6 @@
 package com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities;
 
+import com.udyogi.employeemodule.entities.JobApplicationEntity;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.enums.EmploymentType;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.enums.JobStatus;
 import jakarta.persistence.*;
@@ -12,7 +13,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -53,6 +56,11 @@ public class JobPost {
     @UpdateTimestamp
     @Column(name = "updated_date", insertable = false)
     private LocalDateTime updatedDate;
-@Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.STRING)
     private JobStatus jobStatus;
+    @OneToMany(mappedBy = "jobPost")
+    private Set<JobApplicationEntity> jobApplicationEntity = new HashSet<>();
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "hr_id")
+    private HrEntity hrEntity;
 }

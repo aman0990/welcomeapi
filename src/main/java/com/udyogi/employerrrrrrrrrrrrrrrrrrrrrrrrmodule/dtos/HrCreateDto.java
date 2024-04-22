@@ -1,5 +1,6 @@
 package com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Lob;
 import lombok.AllArgsConstructor;
@@ -16,8 +17,9 @@ public class HrCreateDto {
     @Column(name = "hr_name", nullable = false)
     private String hrName;
 
-    @Column(name = "hr_password", nullable = false)
-    private String hrPassword;
+    /*@Column(name = "hr_password", nullable = false)
+    @JsonIgnore
+    private String hrPassword;*/
 
     @Column(name = "hr_mobile", nullable = false)
     private String hrMobile;
@@ -28,11 +30,10 @@ public class HrCreateDto {
     @Column(name = "work_location", nullable = false)
     private String workLocation;
 
-    @Column(name = "hr_profile_pic", nullable = false)
+    /*@Column(name = "hr_profile_pic", nullable = false)
     @Lob
-    private byte[] hrProfilePic;
+    private byte[] hrProfilePic;*/
 
     @Column(name = "work_experience", nullable = false)
     private String workExperience;
-
 }

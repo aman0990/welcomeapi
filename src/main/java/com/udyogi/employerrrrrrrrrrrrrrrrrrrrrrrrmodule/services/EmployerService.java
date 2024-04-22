@@ -3,6 +3,7 @@ package com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.services;
 import com.udyogi.constants.UserConstants;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.AddJobPostDto;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.AdminSignUp;
+import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.CommonResponseDto;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.HrCreateDto;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.EmployerAdmin;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.HrEntity;
@@ -19,7 +20,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -116,7 +120,7 @@ public class EmployerService {
     }
 
     public ResponseEntity<String> updateHrProfile(String email, HrCreateDto hrCreateDto) {
-        HrEntity hrEntity = new HrEntity();
+        HrEntity hrEntity = hrRepo.findByEmail(email);
         if(Objects.isNull(hrCreateDto)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(UserConstants.NOT_ACCEPTABLE_406);
         }
@@ -128,27 +132,80 @@ public class EmployerService {
             hrEntity.setHrName(hrCreateDto.getHrName());
             hrEntity.setWorkExperience(hrCreateDto.getWorkExperience());
             hrEntity.setWorkLocation(hrCreateDto.getWorkLocation());
-            hrEntity.setHrProfilePic(hrCreateDto.getHrProfilePic());
-            hrEntity.setHrPassword(passwordEncoder.encode(hrCreateDto.getHrPassword()));
-            var hrEmail = employerAdminRepo.findByEmail(email);
-            if (Objects.nonNull(hrEmail)) {
-                employerAdminRepo.save(hrEmail);
-                emailService.sendConfirmationEmail(hrEmail.getEmail());
-                return ResponseEntity.status(HttpStatus.CREATED).body(UserConstants.HR_ACCOUNT_CREATED_SUCCESSFULLY);
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(UserConstants.FAILED_TO_CREATE_USER_ACCOUNT);
-            }
+            hrRepo.save(hrEntity);
+            emailService.sendConfirmationEmail(hrEntity.getEmail());
+            return ResponseEntity.status(HttpStatus.OK).body(UserConstants.HR_PROFILE_UPDATED_SUCCESSFULLY);
         }
     }
 
-    public String verifyHrOtp(String email, Long otp) {
+    public String verifyHrOtp(String email, Long otp, String password) {
         if(Boolean.TRUE.equals(utilService.verifyEmail(email, otp))) {
-            HrEntity hrEntity = new HrEntity();
+            HrEntity hrEntity = hrRepo.findByEmail(email);
             hrEntity.setIsHrActive(true);
+            hrEntity.setHrPassword(passwordEncoder.encode(password));
             hrRepo.save(hrEntity);
-            //updateHrProfile(email, new HrCreateDto());
             return "HR verified successfully";
         }
         return "Error occurred while verifying HR";
+    }
+
+    public ResponseEntity<CommonResponseDto> loginHrProfile(String email, String password) {
+        HrEntity hrEntity = hrRepo.findByEmail(email);
+        if (hrEntity == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).
+                    body(new CommonResponseDto(null, UserConstants.USER_NOT_FOUND_MESSAGE + email));
+        }
+        if (Boolean.FALSE.equals(hrEntity.getIsHrActive())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).
+                    body(new CommonResponseDto(null, UserConstants.HR_NOT_ACTIVE));
+        }
+        if (passwordEncoder.matches(password, hrEntity.getHrPassword())) {
+            HrCreateDto hrCreateDto = new HrCreateDto();
+            BeanUtils.copyProperties(hrEntity, hrCreateDto);
+            return ResponseEntity.status(HttpStatus.OK).
+                    body(new CommonResponseDto(hrCreateDto, UserConstants.LOGIN_SUCCESSFUL_MESSAGE));
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).
+                body(new CommonResponseDto(null, UserConstants.INVALID_CREDENTIALS));
+    }
+
+    @Transactional
+    public ResponseEntity<String> updateHrProfilePic(String email, MultipartFile profilePic) {
+        try {
+            HrEntity hrEntity = hrRepo.findByEmail(email);
+            if (hrEntity == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("HR not found with email: " + email);
+            }
+
+            if (profilePic == null || profilePic.isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body("Profile picture cannot be null or empty");
+            }
+
+            hrEntity.setHrProfilePic(profilePic.getBytes());
+            hrRepo.save(hrEntity);
+
+            return ResponseEntity.ok("Profile picture updated successfully");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to update profile picture");
+        }
+    }
+
+    public byte[] getProfilePhoto(String email) {
+        HrEntity hrEntity = hrRepo.findByEmail(email);
+        if (hrEntity != null && hrEntity.getHrProfilePic() != null) {
+            return hrEntity.getHrProfilePic();
+        } else {
+            // Return default profile photo or handle the case when no profile photo is available
+            return getDefaultProfilePhoto(); // Implement this method to return a default image
+        }
+    }
+
+    private byte[] getDefaultProfilePhoto() {
+        // Implement logic to load and return a default profile photo
+        return new byte[0]; // Placeholder implementation
     }
 }

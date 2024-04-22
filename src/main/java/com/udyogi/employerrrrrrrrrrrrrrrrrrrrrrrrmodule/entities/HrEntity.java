@@ -6,6 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -31,4 +34,6 @@ public class HrEntity {
     @ManyToOne
     @JoinColumn(name = "employer_id")
     private EmployerAdmin employerAdmin;
+    @OneToMany(mappedBy = "hrEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<JobPost> jobPosts = new LinkedHashSet<>();
 }

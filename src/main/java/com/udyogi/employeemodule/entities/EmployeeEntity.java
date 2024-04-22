@@ -5,6 +5,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 @Getter
 @Setter
 @Entity
@@ -34,7 +37,7 @@ public class EmployeeEntity {
     @Column(name = "custom_id", nullable = false, unique = true, length = 50)
     private String customId;
 
-    /*@ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "employer_id", referencedColumnName = "employer_id")
-    private EmployerAdmin employer;*/
+    @OneToMany(mappedBy = "employeeEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<JobApplicationEntity> jobApplicationEntities = new LinkedHashSet<>();
+
 }
