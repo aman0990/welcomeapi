@@ -5,4 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface JobPostRepo extends JpaRepository<JobPost, Long>{
 
+    //JobPost findByJobId(Long jobId);
 }

@@ -44,7 +44,8 @@ public class JobPost {
     private String responsibilities;
     private String aboutCompany;
     @ElementCollection
-    private List<String> questions=new ArrayList<>();
+    @Column(name = "question")
+    private List<String> questions = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "employer_id")

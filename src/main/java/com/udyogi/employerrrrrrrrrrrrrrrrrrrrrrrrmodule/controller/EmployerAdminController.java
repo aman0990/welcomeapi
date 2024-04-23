@@ -40,7 +40,7 @@ public class EmployerAdminController {
             return new ResponseEntity<>("Error occurred while adding employer", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-//    this is under development currently not woking
+
     @PostMapping("/login")
     public ResponseEntity<String> loginEmployer(@RequestParam String email, @RequestParam String password) {
         try {
@@ -65,6 +65,18 @@ public class EmployerAdminController {
             return new ResponseEntity<>("Error occurred while adding job post", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    // bhai update post test kr lena aata hun 10 mnt me !!
+    @PutMapping("/update-jobpost/{id}")
+    public ResponseEntity<String> updateJobPost(@RequestBody AddJobPostDto jobPost ,@PathVariable Long id) {
+        try {
+            employerService.updateJobPost(id, jobPost);
+            log.info("Job post updated successfully");
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error occurred while updating job post", e);
+            return new ResponseEntity<>("Error occurred while updating job post", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     // adding HR by sending OTP to HR email taking HR email as input and admin number
     @PostMapping("/add-hr/{email}")
@@ -82,25 +94,16 @@ public class EmployerAdminController {
     @PostMapping("/verify-Hr-Otp/{email}")
     public ResponseEntity<String> verifyHrOtp(@PathVariable String email, @RequestBody Map<String, String> requestBody) {
         try {
-            // Extract the 'otp' value from the request body
             String otpStr = requestBody.get("otp");
             String password = requestBody.get("password");
-
-            // Parse the 'otp' value to Long (if needed)
-            // In this case, converting to Long is optional based on your service method's requirement
-            Long otp = Long.valueOf(otpStr); // This might throw NumberFormatException if 'otpStr' is not a valid Long
-            // Call the service method to verify OTP
+            Long otp = Long.valueOf(otpStr);
             String msg = employerService.verifyHrOtp(email, otp, password);
             log.info("HR verified successfully");
-
-            // Return success response
             return new ResponseEntity<>(msg, HttpStatus.OK);
         } catch (NumberFormatException e) {
-            // Handle NumberFormatException (e.g., invalid 'otp' format)
             log.error("Invalid OTP format: " , e);
             return new ResponseEntity<>("Invalid OTP format", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            // Handle other exceptions
             log.error("Error occurred while verifying HR", e);
             return new ResponseEntity<>("Error occurred while verifying HR", HttpStatus.INTERNAL_SERVER_ERROR);
         }

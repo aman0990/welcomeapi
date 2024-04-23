@@ -4,6 +4,7 @@ import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.JobPost;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
 
 import java.util.Date;
 
@@ -18,6 +19,7 @@ public class JobApplicationEntity {
     @ManyToOne
     @JoinColumn(name = "job_id")
     private JobPost jobPost;
+    @CreatedDate
     private Date applicationDate;
     @ManyToOne
     @JoinColumn(name = "employee_id")

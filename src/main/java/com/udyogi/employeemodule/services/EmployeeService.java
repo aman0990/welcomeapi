@@ -2,13 +2,14 @@ package com.udyogi.employeemodule.services;
 
 import com.udyogi.constants.UserConstants;
 import com.udyogi.employeemodule.dtos.*;
-import com.udyogi.employeemodule.entities.EducationDetails;
-import com.udyogi.employeemodule.entities.EmployeeEntity;
-import com.udyogi.employeemodule.entities.ExperienceDetails;
+import com.udyogi.employeemodule.entities.*;
 import com.udyogi.employeemodule.mapper.EmployeeMapper;
 import com.udyogi.employeemodule.repositories.EducationDetailsRepository;
 import com.udyogi.employeemodule.repositories.EmployeeRepo;
 import com.udyogi.employeemodule.repositories.ExperienceDetailsRepository;
+import com.udyogi.employeemodule.repositories.JobApplicationEntityRepository;
+import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.JobPost;
+import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.repositories.JobPostRepo;
 import com.udyogi.util.CustomIdGenerator;
 import com.udyogi.util.EmailService;
 import com.udyogi.util.FileStorageException;
@@ -21,9 +22,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -32,6 +35,8 @@ public class EmployeeService {
     private static final Logger logger = LoggerFactory.getLogger(EmployeeService.class);
 
     private final EmployeeRepo employeeRepo;
+    private final JobPostRepo jobPostRepo;
+    private final JobApplicationEntityRepository jobApplicationEntityRepository;
     private final EmailService emailService;
     private final UtilService utilService;
     private final CustomIdGenerator customIdGenerator;
@@ -254,6 +259,39 @@ public class EmployeeService {
             logger.error("Error occurred during adding resume", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(UserConstants.FAILED_TO_ADD_RESUME);
+        }
+    }
+
+    @Transactional
+    public ResponseEntity<JobApplicationEntity> applyForJob(Long jobId, Long employeeId) {
+        try {
+            Optional<JobPost> jobPostOpt = jobPostRepo.findById(jobId);
+            Optional<EmployeeEntity> employeeOpt = employeeRepo.findById(employeeId);
+            if (jobPostOpt.isEmpty() || employeeOpt.isEmpty()) {
+                String errorMessage = "Job post or employee not found with IDs: " + jobId + ", " + employeeId;
+                logger.error(errorMessage);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+            JobPost jobPost = jobPostOpt.get();
+            EmployeeEntity employeeEntity = employeeOpt.get();
+           JobApplicationEntity job= jobApplicationEntityRepository.findByJobPostAndEmployeeEntity(jobPost, employeeEntity);
+            if (job!=null){
+
+                // aata hun 5 mnt me
+                String errorMessage = "Employee with ID " + employeeId + " has already applied for job with ID " + jobId;
+                logger.warn(errorMessage);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            }
+            JobApplicationEntity jobApplicationEntity = new JobApplicationEntity();
+            jobApplicationEntity.setJobPost(jobPost);
+            jobApplicationEntity.setEmployeeEntity(employeeEntity);
+            jobApplicationEntity.setApplyStatus(ApplicationStatus.APPLIED);
+            jobApplicationEntityRepository.save(jobApplicationEntity);
+            return ResponseEntity.status(HttpStatus.OK).body(jobApplicationEntity);
+        } catch (Exception e) {
+            String errorMessage = "Error applying for job: " + e.getMessage();
+            logger.error(errorMessage, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 }

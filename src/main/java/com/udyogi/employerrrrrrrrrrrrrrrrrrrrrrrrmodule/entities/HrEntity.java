@@ -28,6 +28,8 @@ public class HrEntity {
     private String workLocation;
     private Boolean isHrActive;
     private Long otp;
+    @Column(name = "role")
+    private String role;
     @Lob
     private byte[] hrProfilePic;
     private String workExperience;

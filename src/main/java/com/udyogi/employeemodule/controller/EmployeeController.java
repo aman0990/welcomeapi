@@ -5,11 +5,14 @@ import com.udyogi.employeemodule.dtos.EducationDetailsDto;
 import com.udyogi.employeemodule.dtos.ExperienceDetailsDto;
 import com.udyogi.employeemodule.dtos.SignUpDto;
 import com.udyogi.employeemodule.dtos.loginDto;
+import com.udyogi.employeemodule.entities.JobApplicationEntity;
 import com.udyogi.employeemodule.services.EmployeeService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.apache.coyote.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.actuate.autoconfigure.observation.ObservationProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -235,12 +238,10 @@ public class EmployeeController {
     public ResponseEntity<String> addResume(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         try {
             logger.info("Received request to add resume for user with ID: {}", id);
-
             if (file == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(UserConstants.FILE_CAN_NOT_BE_NULL);
             }
-
             var added = employeeService.addResume(id, file);
             if (added.getStatusCode().equals(HttpStatus.OK)) {
                 return ResponseEntity.status(HttpStatus.CREATED)
@@ -256,6 +257,26 @@ public class EmployeeController {
             logger.error("Error occurred during adding resume", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(UserConstants.FAILED_TO_ADD_RESUME);
+        }
+    }
+
+    // Applying for job
+    @PostMapping("/applyForJob/{jobId}/{employeeId}")
+    public ResponseEntity<Boolean> applyForJob(@PathVariable Long jobId, @PathVariable Long employeeId) {
+        try{
+            logger.info("applying for job");
+            var applied = employeeService.applyForJob(jobId, employeeId);
+            if(applied.getStatusCode().equals(HttpStatus.OK)){
+                return ResponseEntity.status(HttpStatus.OK).body(Boolean.TRUE);
+            } else if (applied.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Boolean.FALSE);
+            } else if (applied.getStatusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR)) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Boolean.FALSE);
+            }else return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Boolean.FALSE);
+        } catch (Exception e){
+            logger.error("Error Applying Job");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Boolean.FALSE);
         }
     }
 }

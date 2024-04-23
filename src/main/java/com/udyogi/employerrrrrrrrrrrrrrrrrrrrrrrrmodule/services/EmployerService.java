@@ -13,6 +13,7 @@ import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.repositories.HrRepo;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.repositories.JobPostRepo;
 import com.udyogi.util.EmailService;
 import com.udyogi.util.UtilService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -51,6 +52,7 @@ public class EmployerService {
                     employerAdmin.setVerified(false);
                     employerAdmin.setPassword(passwordEncoder.encode(adminSignUp.getPassword()));
                     employerAdmin.setCustomId(generateEmployerId(adminSignUp.getCompanyName()));
+                    employerAdmin.setRole("EMPLOYER_ADMIN");
                     employerAdminRepo.save(employerAdmin);
                     emailService.sendVerificationEmail(adminSignUp.getEmail(), Math.toIntExact(employerAdmin.getOtp()));
                     return "Employer added successfully";
@@ -93,15 +95,56 @@ public class EmployerService {
         return "Invalid credentials";
     }
 
+    @Transactional
     public String addJobPost(AddJobPostDto jobPost, Long id) {
         JobPost jobP = new JobPost();
         BeanUtils.copyProperties(jobPost, jobP);
-        employerAdminRepo.findById(id).ifPresent(employerAdmin -> {
-            employerAdmin.getJobPosts().add(jobP);
-            employerAdminRepo.save(employerAdmin);
-        });
-        jobPostRepo.save(jobP);
-        return null;
+        try {
+            Optional<EmployerAdmin> employerAdmin = employerAdminRepo.findById(id);
+            Optional<HrEntity> hrEntity = hrRepo.findById(id);
+            if(employerAdmin.isPresent()){
+                jobP.setEmployerAdmin(employerAdmin.get());
+                jobPostRepo.save(jobP);
+                return "Job post added successfully for Employer Admin.";
+            } else if(hrEntity.isPresent()) {
+                jobP.setHrEntity(hrEntity.get());
+                jobPostRepo.save(jobP);
+                return "Job post added successfully for HR.";
+            } else {
+                return "User with ID " + id + " is not authorized as an Employer Admin or HR.";
+            }
+        } catch (EntityNotFoundException e) {
+            // Log the entity not found exception
+            log.error("Error adding job post: " + e.getMessage());
+            return "User with ID " + id + " not found.";
+        } catch (IllegalStateException e) {
+            // Log the illegal state exception
+            log.error("Error adding job post: " + e.getMessage());
+            return e.getMessage();
+        } catch (Exception e) {
+            // Log any other unexpected exceptions
+            log.error("Error adding job post", e);
+            return "An unexpected error occurred while adding the job post.";
+        }
+    }
+
+    // JOB Update
+    public ResponseEntity<String> updateJobPost(Long id, AddJobPostDto jobPost) {
+        try {
+            Optional<JobPost> jobPostOptional = jobPostRepo.findById(id);
+            if (jobPostOptional.isPresent()) {
+                JobPost jobPostEntity = jobPostOptional.get();
+                BeanUtils.copyProperties(jobPost, jobPostEntity);
+                jobPostRepo.save(jobPostEntity);
+                return ResponseEntity.ok("Job post updated successfully");
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            log.error("Error occurred while updating job post", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error occurred while updating job post");
+        }
     }
 
     public String addHr(String email, Long id) {
@@ -115,6 +158,7 @@ public class EmployerService {
         emailService.sendOtptoHr(email, Math.toIntExact(otp));
         hrEntity.setEmployerAdmin(employerAdminRepo.findById(id).get());
         hrEntity.setEmail(email);
+        hrEntity.setRole("HR");
         hrRepo.save(hrEntity);
         return "HR added successfully";
     }
