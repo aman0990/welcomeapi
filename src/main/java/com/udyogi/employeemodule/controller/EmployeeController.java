@@ -7,8 +7,10 @@ import com.udyogi.employeemodule.dtos.SignUpDto;
 import com.udyogi.employeemodule.dtos.loginDto;
 import com.udyogi.employeemodule.entities.JobApplicationEntity;
 import com.udyogi.employeemodule.services.EmployeeService;
+import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.JobPost;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.apache.catalina.User;
 import org.apache.coyote.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +19,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/employee")
@@ -261,23 +265,27 @@ public class EmployeeController {
     }
 
     // JOB recommendation
-    /*@GetMapping("/jobRecommendation/{employeeId}")
-    public ResponseEntity<?> jobRecommendation(@PathVariable Long employeeId) {
-        try {
-            logger.info("Received request to get job recommendation for employee with ID: {}", employeeId);
+    @GetMapping("/jobRecommendation/{employeeId}")
+    public ResponseEntity<?> getJobRecommendation(@PathVariable Long employeeId) {
+        try{
+            logger.info("fetching job recommendation");
             var recommendedJobs = employeeService.jobRecommendation(employeeId);
-            if (recommendedJobs.getStatusCode().equals(HttpStatus.OK)) {
+            if(recommendedJobs.getStatusCode().equals(HttpStatus.OK)){
                 return ResponseEntity.status(HttpStatus.OK).body(recommendedJobs.getBody());
-            } else if (recommendedJobs.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(UserConstants.NO_JOBS_FOUND);
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(UserConstants.FAILED_TO_GET_JOB_RECOMMENDATION);
-            }
-        } catch (Exception e) {
-            logger.error("Error occurred during getting job recommendation", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(UserConstants.FAILED_TO_GET_JOB_RECOMMENDATION);
+            }else if(recommendedJobs.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(UserConstants.USER_NOT_FOUND_MESSAGE + " " + employeeId);
+            }else if(recommendedJobs.getStatusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR)) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(UserConstants.FAILED_TO_RECOMMEND_JOBS);
+            }else return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(UserConstants.FAILED_TO_RECOMMEND_JOBS);
+        } catch (Exception e){
+            logger.error("Error fetching job recommendation");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(UserConstants.INTERNAL_SERVER_ERROR_500);
         }
-    }*/
+    }
 
     // Applying for job
     @PostMapping("/applyForJob/{jobId}/{employeeId}")

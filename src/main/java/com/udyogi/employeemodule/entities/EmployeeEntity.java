@@ -42,4 +42,8 @@ public class EmployeeEntity {
     private String customId;
     @OneToMany(mappedBy = "employeeEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<JobApplicationEntity> jobApplicationEntities = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<JobRecommendation> jobRecommendations = new LinkedHashSet<>();
+
 }
