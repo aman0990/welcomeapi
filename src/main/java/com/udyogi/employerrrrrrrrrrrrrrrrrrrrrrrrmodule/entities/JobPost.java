@@ -30,6 +30,10 @@ public class JobPost {
 
     private String jobTitle;
     private String experience;
+    @ElementCollection
+    private List<String> jobType = new ArrayList<>();
+    @ElementCollection
+    private List<String> workMode = new ArrayList<>();
     private int positions;
     @ElementCollection
     private List<String> skills = new ArrayList<>();

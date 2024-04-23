@@ -25,8 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
@@ -262,6 +261,13 @@ public class EmployeeService {
         }
     }
 
+    /**
+     * Apply for a job by creating a job application entity.
+     *
+     * @param  jobId      The ID of the job post
+     * @param  employeeId The ID of the employee
+     * @return            ResponseEntity containing the job application entity or an error response
+     */
     @Transactional
     public ResponseEntity<JobApplicationEntity> applyForJob(Long jobId, Long employeeId) {
         try {
@@ -276,8 +282,6 @@ public class EmployeeService {
             EmployeeEntity employeeEntity = employeeOpt.get();
            JobApplicationEntity job= jobApplicationEntityRepository.findByJobPostAndEmployeeEntity(jobPost, employeeEntity);
             if (job!=null){
-
-                // aata hun 5 mnt me
                 String errorMessage = "Employee with ID " + employeeId + " has already applied for job with ID " + jobId;
                 logger.warn(errorMessage);
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
@@ -293,5 +297,75 @@ public class EmployeeService {
             logger.error(errorMessage, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
+    }
+
+    public ResponseEntity<?> jobRecommendation(Long employeeId) {
+        try {
+            // Step 1: Retrieve the employee information from the database using the provided employeeId
+            EmployeeEntity employeeEntity = employeeRepo.findByEmployeeId(employeeId);
+            // Step 2: Check if the employee exists
+            if (employeeEntity == null) {
+                // If the employee does not exist, return a 404 Not Found response
+                /*return ResponseEntity.notFound().body("Employee not found with ID: " + employeeId);*/
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Employee not found with ID: " + employeeId);
+            }
+            // Step 3: Implement your job recommendation logic here
+            // For example, you can query job recommendations based on the employee's skills, experience, etc.
+            // This logic will vary based on your application requirements
+            // For demonstration purposes, let's assume we generate job recommendations and store them in a list
+            List<JobRecommendation> jobRecommendations = generateJobRecommendations(employeeEntity);
+            // Step 4: Prepare a response indicating that job recommendations were successfully generated
+            StringBuilder responseBuilder = new StringBuilder();
+            responseBuilder.append("Job recommendations for employee ID ").append(employeeId).append(":\n");
+            for (JobRecommendation recommendation : jobRecommendations) {
+                responseBuilder.append(recommendation.toString()).append("\n");
+            }
+            // Step 5: Return an OK response with the job recommendations
+            return ResponseEntity.ok(responseBuilder.toString());
+        } catch (DataAccessException e) {
+            // Step 6: If an exception occurs while accessing the database, log the error and return an internal server error response
+            logger.error("Error occurred during job recommendation", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to recommend jobs due to a database error");
+        }
+    }
+
+    public List<JobRecommendation> generateJobRecommendations(EmployeeEntity employeeEntity) {
+        JobRecommendation jobRecommendation = new JobRecommendation();
+        // Step 1: Retrieve relevant employee attributes for job recommendation
+        List<String> preferredSkills = jobRecommendation.getPreferredSkills();
+        List<String> preferredLocations = jobRecommendation.getPreferredLocations();
+        List<String> preferredTypes = jobRecommendation.getPreferredTypes();
+        List<String> preferredExp = Collections.singletonList(jobRecommendation.getPreferredExp());
+        List<String> preferredWorkMode = jobRecommendation.getPreferredWorkMode();
+
+        // Step 2: Implement job recommendation logic based on employee attributes
+        List<JobRecommendation> jobRecommendations = new ArrayList<>();
+
+        // Example: Query jobs from the repository based on employee preferences
+        for (String skill : preferredSkills) {
+            List<JobPost> jobsBySkill = jobPostRepo.findJobsBySkill(skill);
+            for (JobPost job : jobsBySkill) {
+                // Check if the job location, type, experience, and work mode match the employee preferences
+                if (preferredLocations.contains(job.getLocation())
+                        && preferredTypes.contains(job.getJobType())
+                        && preferredExp.contains(job.getExperience())
+                        && preferredWorkMode.contains(job.getWorkMode())) {
+                    // Create a job recommendation based on matching job attributes
+                    JobRecommendation recommendation = new JobRecommendation();
+                    recommendation.setId(job.getId());
+                    recommendation.setJobName(job.getJobTitle());
+                    recommendation.setPreferredLocations(Collections.singletonList(job.getLocation()));
+                    recommendation.setPreferredTypes(job.getJobType());
+                    recommendation.setPreferredExp(job.getExperience());
+                    recommendation.setPreferredWorkMode(job.getWorkMode());
+
+                    // Add the job recommendation to the list
+                    jobRecommendations.add(recommendation);
+                }
+            }
+        }
+
+        // Step 3: Return the list of job recommendations
+        return jobRecommendations;
     }
 }

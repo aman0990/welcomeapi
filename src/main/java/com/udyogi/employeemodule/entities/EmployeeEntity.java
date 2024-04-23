@@ -5,7 +5,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -28,16 +30,16 @@ public class EmployeeEntity {
     private String gender;
     @JsonIgnore
     private Long otp;
+    @JsonIgnore
     private Boolean verified;
     private Boolean fresher;
+    @JsonIgnore
     private String role;
     @Lob
     private byte[] profilePic;
     @GenericGenerator(name = "custom-id-generator", strategy = "com.udyogi.util.CustomIdGenerator")
     @Column(name = "custom_id", nullable = false, unique = true, length = 50)
     private String customId;
-
     @OneToMany(mappedBy = "employeeEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<JobApplicationEntity> jobApplicationEntities = new LinkedHashSet<>();
-
 }

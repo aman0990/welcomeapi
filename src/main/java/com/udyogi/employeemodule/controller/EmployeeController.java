@@ -260,6 +260,25 @@ public class EmployeeController {
         }
     }
 
+    // JOB recommendation
+    /*@GetMapping("/jobRecommendation/{employeeId}")
+    public ResponseEntity<?> jobRecommendation(@PathVariable Long employeeId) {
+        try {
+            logger.info("Received request to get job recommendation for employee with ID: {}", employeeId);
+            var recommendedJobs = employeeService.jobRecommendation(employeeId);
+            if (recommendedJobs.getStatusCode().equals(HttpStatus.OK)) {
+                return ResponseEntity.status(HttpStatus.OK).body(recommendedJobs.getBody());
+            } else if (recommendedJobs.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(UserConstants.NO_JOBS_FOUND);
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(UserConstants.FAILED_TO_GET_JOB_RECOMMENDATION);
+            }
+        } catch (Exception e) {
+            logger.error("Error occurred during getting job recommendation", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(UserConstants.FAILED_TO_GET_JOB_RECOMMENDATION);
+        }
+    }*/
+
     // Applying for job
     @PostMapping("/applyForJob/{jobId}/{employeeId}")
     public ResponseEntity<Boolean> applyForJob(@PathVariable Long jobId, @PathVariable Long employeeId) {
