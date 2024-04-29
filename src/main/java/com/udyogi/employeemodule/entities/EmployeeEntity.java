@@ -4,6 +4,8 @@ import org.hibernate.annotations.GenericGenerator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import java.util.Set;
 
@@ -27,19 +29,20 @@ public class EmployeeEntity {
     private String gender;
     @JsonIgnore
     private Long otp;
+    @JsonIgnore
     private Boolean verified;
     private Boolean fresher;
+    @JsonIgnore
     private String role;
     @Lob
     private byte[] profilePic;
     @GenericGenerator(name = "custom-id-generator", strategy = "com.udyogi.util.CustomIdGenerator")
     @Column(name = "custom_id", nullable = false, unique = true, length = 50)
     private String customId;
+    @OneToMany(mappedBy = "employeeEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<JobApplicationEntity> jobApplicationEntities = new LinkedHashSet<>();
 
-    @JsonIgnore
-    @OneToMany(mappedBy="employee",fetch=FetchType.EAGER)
-    private Set<Authority> authorities;
-    /*@ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "employer_id", referencedColumnName = "employer_id")
-    private EmployerAdmin employer;*/
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<JobRecommendation> jobRecommendations = new LinkedHashSet<>();
+   
 }

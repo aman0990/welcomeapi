@@ -1,9 +1,7 @@
 package com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.controller;
 
 import com.udyogi.constants.UserConstants;
-import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.AddJobPostDto;
-import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.AdminSignUp;
-import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.HrCreateDto;
+import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.*;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.services.EmployerService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -11,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
@@ -38,7 +37,7 @@ public class EmployerAdminController {
             return new ResponseEntity<>("Error occurred while adding employer", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-//    this is under development currently not woking
+
     @PostMapping("/login")
     public ResponseEntity<String> loginEmployer(@RequestParam String email, @RequestParam String password) {
         try {
@@ -63,6 +62,18 @@ public class EmployerAdminController {
             return new ResponseEntity<>("Error occurred while adding job post", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    // bhai update post test kr lena aata hun 10 mnt me !!
+    @PutMapping("/update-jobpost/{id}")
+    public ResponseEntity<String> updateJobPost(@RequestBody UpdateJobPostDto jobPost , @PathVariable Long id, @RequestParam String email) {
+        try {
+            employerService.updateJobPost(id, jobPost, email);
+            log.info("Job post updated successfully");
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error occurred while updating job post", e);
+            return new ResponseEntity<>("Error occurred while updating job post", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     // adding HR by sending OTP to HR email taking HR email as input and admin number
     @PostMapping("/add-hr/{email}")
@@ -80,31 +91,52 @@ public class EmployerAdminController {
     @PostMapping("/verify-Hr-Otp/{email}")
     public ResponseEntity<String> verifyHrOtp(@PathVariable String email, @RequestBody Map<String, String> requestBody) {
         try {
-            // Extract the 'otp' value from the request body
             String otpStr = requestBody.get("otp");
-
-            // Parse the 'otp' value to Long (if needed)
-            // In this case, converting to Long is optional based on your service method's requirement
-            Long otp = Long.valueOf(otpStr); // This might throw NumberFormatException if 'otpStr' is not a valid Long
-
-            // Call the service method to verify OTP
-            String msg = employerService.verifyHrOtp(email, otp);
+            String password = requestBody.get("password");
+            Long otp = Long.valueOf(otpStr);
+            String msg = employerService.verifyHrOtp(email, otp, password);
             log.info("HR verified successfully");
-
-            // Return success response
             return new ResponseEntity<>(msg, HttpStatus.OK);
         } catch (NumberFormatException e) {
-            // Handle NumberFormatException (e.g., invalid 'otp' format)
             log.error("Invalid OTP format: " , e);
             return new ResponseEntity<>("Invalid OTP format", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            // Handle other exceptions
             log.error("Error occurred while verifying HR", e);
             return new ResponseEntity<>("Error occurred while verifying HR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @PostMapping("/update-Hr-Profile")
+    @PostMapping("/Login-Hr-Profile")
+    public ResponseEntity<CommonResponseDto> loginHrProfile(@RequestParam String email, @RequestParam String password) {
+        try {
+            var hrProfile = employerService.loginHrProfile(email, password);
+            log.info("HR profile logged in successfully");
+            if(hrProfile != null && HttpStatus.OK.equals(hrProfile.getStatusCode())) {
+                return ResponseEntity.status(HttpStatus.OK).
+                        body(new CommonResponseDto(hrProfile, UserConstants.LOGIN_SUCCESSFUL));
+            } else {
+                assert hrProfile != null;
+                if (HttpStatus.NOT_FOUND.equals(hrProfile.getStatusCode())) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).
+                            body(new CommonResponseDto(null, UserConstants.USER_NOT_FOUND_MESSAGE + email));
+                } else if (HttpStatus.FORBIDDEN.equals(hrProfile.getStatusCode())) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).
+                            body(new CommonResponseDto(null, UserConstants.HR_NOT_ACTIVE));
+                } else {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).
+                            body(new CommonResponseDto(null, UserConstants.INVALID_CREDENTIALS));
+                }
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            log.error("Error occurred while logging in HR profile", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).
+                    body(new CommonResponseDto(null, UserConstants.FAILED_TO_LOGIN_HR_PROFILE));
+        }
+    }
+
+    @PutMapping("/update-Hr-Profile")
     public ResponseEntity<String> updateHrProfile(@RequestParam String email, @RequestBody HrCreateDto hrCreateDto) {
         try{
             var updated = employerService.updateHrProfile(email,hrCreateDto);
@@ -121,6 +153,34 @@ public class EmployerAdminController {
             log.error("Error occurred while updating HR profile", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).
                     body(UserConstants.FAILED_TO_CREATE_HR_ACCOUNT);
+        }
+    }
+
+    @PutMapping("/update-profile-pic")
+    public ResponseEntity<String> updateHrProfilePic(@RequestParam String email,
+                                                     @RequestParam MultipartFile profilePic) {
+        try {
+            ResponseEntity<String> response = employerService.updateHrProfilePic(email, profilePic);
+            return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to update profile picture");
+        }
+    }
+
+    @GetMapping("/get-profile-photo")
+    public ResponseEntity<byte[]> getProfilePhoto(@RequestParam String email) {
+        try {
+            byte[] profilePhoto = employerService.getProfilePhoto(email);
+            if (profilePhoto != null && profilePhoto.length > 0) {
+                return ResponseEntity.ok().body(profilePhoto);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

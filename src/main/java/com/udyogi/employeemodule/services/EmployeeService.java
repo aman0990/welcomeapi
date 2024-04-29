@@ -2,13 +2,14 @@ package com.udyogi.employeemodule.services;
 
 import com.udyogi.constants.UserConstants;
 import com.udyogi.employeemodule.dtos.*;
-import com.udyogi.employeemodule.entities.EducationDetails;
-import com.udyogi.employeemodule.entities.EmployeeEntity;
-import com.udyogi.employeemodule.entities.ExperienceDetails;
+import com.udyogi.employeemodule.entities.*;
 import com.udyogi.employeemodule.mapper.EmployeeMapper;
 import com.udyogi.employeemodule.repositories.EducationDetailsRepository;
 import com.udyogi.employeemodule.repositories.EmployeeRepo;
 import com.udyogi.employeemodule.repositories.ExperienceDetailsRepository;
+import com.udyogi.employeemodule.repositories.JobApplicationEntityRepository;
+import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.JobPost;
+import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.repositories.JobPostRepo;
 import com.udyogi.util.CustomIdGenerator;
 import com.udyogi.util.EmailService;
 import com.udyogi.util.FileStorageException;
@@ -18,12 +19,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Objects;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
@@ -32,6 +35,8 @@ public class EmployeeService {
     private static final Logger logger = LoggerFactory.getLogger(EmployeeService.class);
 
     private final EmployeeRepo employeeRepo;
+    private final JobPostRepo jobPostRepo;
+    private final JobApplicationEntityRepository jobApplicationEntityRepository;
     private final EmailService emailService;
     private final UtilService utilService;
     private final CustomIdGenerator customIdGenerator;
@@ -50,13 +55,11 @@ public class EmployeeService {
             if (signUpDto == null) {
                 throw new IllegalArgumentException("SignUpDto is null");
             }
-
             EmployeeEntity existingEmployee = employeeRepo.findByEmail(signUpDto.getEmail());
             if (existingEmployee != null) {
                 return ResponseEntity.status(HttpStatus.ALREADY_REPORTED)
                         .body(UserConstants.USER_WITH_USERNAME_OR_EMAIL_ALREADY_EXISTS);
             }
-
             EmployeeEntity employeeEntity = EmployeeMapper.mapSignUpDtoToEmployeeEntity(signUpDto);
             var otp = utilService.generateOtp();
             employeeEntity.setOtp(otp);
@@ -88,7 +91,6 @@ public class EmployeeService {
     public ResponseEntity<Boolean> verifyEmail(String email, Integer otp) {
         try {
             EmployeeEntity employeeEntity = employeeRepo.findByEmail(email);
-
             if (employeeEntity != null && employeeEntity.getOtp().equals(otp)) {
                 employeeEntity.setVerified(true);
                 employeeRepo.save(employeeEntity);
@@ -147,9 +149,7 @@ public class EmployeeService {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(UserConstants.USER_DETAILS_CAN_NOT_BE_NULL);
             }
-
             EmployeeEntity employeeEntity = employeeRepo.findByEmployeeId(id);
-
             if (employeeEntity == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(UserConstants.USER_NOT_FOUND + " " + id);
@@ -180,9 +180,7 @@ public class EmployeeService {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(UserConstants.USER_DETAILS_CAN_NOT_BE_NULL);
             }
-
             EmployeeEntity employeeEntity = employeeRepo.findByEmployeeId(id);
-
             if (employeeEntity == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(UserConstants.USER_NOT_FOUND + " " + id);
@@ -255,5 +253,117 @@ public class EmployeeService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(UserConstants.FAILED_TO_ADD_RESUME);
         }
+    }
+
+    /**
+     * Apply for a job by creating a job application entity.
+     *
+     * @param  jobId      The ID of the job post
+     * @param  employeeId The ID of the employee
+     * @return            ResponseEntity containing the job application entity or an error response
+     */
+    @Transactional
+    public ResponseEntity<JobApplicationEntity> applyForJob(Long jobId, Long employeeId) {
+        try {
+            Optional<JobPost> jobPostOpt = jobPostRepo.findById(jobId);
+            Optional<EmployeeEntity> employeeOpt = employeeRepo.findById(employeeId);
+            if (jobPostOpt.isEmpty() || employeeOpt.isEmpty()) {
+                String errorMessage = "Job post or employee not found with IDs: " + jobId + ", " + employeeId;
+                logger.error(errorMessage);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+            JobPost jobPost = jobPostOpt.get();
+            EmployeeEntity employeeEntity = employeeOpt.get();
+           JobApplicationEntity job= jobApplicationEntityRepository.findByJobPostAndEmployeeEntity(jobPost, employeeEntity);
+            if (job!=null){
+                String errorMessage = "Employee with ID " + employeeId + " has already applied for job with ID " + jobId;
+                logger.warn(errorMessage);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            }
+            JobApplicationEntity jobApplicationEntity = new JobApplicationEntity();
+            jobApplicationEntity.setJobPost(jobPost);
+            jobApplicationEntity.setEmployeeEntity(employeeEntity);
+            jobApplicationEntity.setApplyStatus(ApplicationStatus.APPLIED);
+            jobApplicationEntityRepository.save(jobApplicationEntity);
+            return ResponseEntity.status(HttpStatus.OK).body(jobApplicationEntity);
+        } catch (Exception e) {
+            String errorMessage = "Error applying for job: " + e.getMessage();
+            logger.error(errorMessage, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    /**
+     * Generates job recommendations for an employee based on their ID.
+     *
+     * @param  employeeId  the ID of the employee
+     * @return             a ResponseEntity containing the job recommendations or an error message
+     */
+    public ResponseEntity<?> jobRecommendation(Long employeeId) {
+        try {
+            EmployeeEntity employeeEntity = employeeRepo.findByEmployeeId(employeeId);
+            if (employeeEntity == null) {
+                logger.warn("Employee not found with ID: {}", employeeId);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(UserConstants.USER_NOT_FOUND + " " + employeeId);
+            }
+            List<JobRecommendation> jobRecommendations = generateJobRecommendations(employeeEntity);
+            logger.info("Job recommendations generated for employee ID: {}", employeeId);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(jobRecommendations);
+        } catch (DataAccessException e) {
+            logger.error("Error occurred during job recommendation for employee ID: {}", employeeId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(UserConstants.FAILED_TO_RECOMMEND_JOBS);
+        } catch (Exception e) {
+            logger.error("Unexpected error occurred during job recommendation for employee ID: {}", employeeId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(UserConstants.FAILED_TO_RECOMMEND_JOBS);
+        }
+    }
+
+    /**
+     * Generates a list of job recommendations based on the employeeEntity provided.
+     *
+     * @param  employeeEntity  the EmployeeEntity for which job recommendations are generated
+     * @return                 a list of JobRecommendation objects based on the employee's preferences
+     */
+    private List<JobRecommendation> generateJobRecommendations(EmployeeEntity employeeEntity) {
+        JobRecommendation jobRecommendation = new JobRecommendation();
+        var preferredSkills = jobRecommendation.getPreferredSkills();
+        var preferredLocations = jobRecommendation.getPreferredLocations();
+        var preferredTypes = jobRecommendation.getPreferredTypes();
+        var preferredExp = Collections.singletonList(jobRecommendation.getPreferredExp());
+        var preferredWorkMode = jobRecommendation.getPreferredWorkMode();
+        Set<JobRecommendation> jobRecommendations = new LinkedHashSet<>();
+        var jobsBySkill = jobPostRepo.findJobsBySkills(preferredSkills);
+            for (JobPost job : jobsBySkill) {
+                if (preferredLocations.contains(job.getLocation())
+                        || preferredTypes.contains(job.getJobType())
+                        || preferredExp.equals(job.getExperience())
+                        || preferredWorkMode.contains(job.getWorkMode())) {
+                    JobRecommendation recommendation = getJobRecommendation(job);
+                    jobRecommendations.add(recommendation);
+                    employeeEntity.setJobRecommendations(jobRecommendations);
+                }
+            }
+        return new ArrayList<>(jobRecommendations);
+    }
+
+    /**
+     * Generates a JobRecommendation object based on the provided JobPost.
+     *
+     * @param  job  the JobPost object used to generate the JobRecommendation
+     * @return      the generated JobRecommendation object
+     */
+    private JobRecommendation getJobRecommendation(JobPost job) {
+        JobRecommendation recommendation = new JobRecommendation();
+        recommendation.setId(job.getId());
+        recommendation.setJobName(job.getJobTitle());
+        recommendation.setPreferredLocations(Collections.singletonList(job.getLocation()));
+        recommendation.setPreferredTypes(Collections.singletonList(job.getJobType()));
+        recommendation.setPreferredExp(job.getExperience());
+        recommendation.setPreferredWorkMode(job.getWorkMode());
+        return recommendation;
     }
 }

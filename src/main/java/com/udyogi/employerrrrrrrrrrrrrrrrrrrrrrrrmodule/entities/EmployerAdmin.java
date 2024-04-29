@@ -53,6 +53,9 @@ public class EmployerAdmin {
     @Column(name = "custom_id", nullable = false, unique = true, length = 50)
     private String customId;
 
+    @Column(name = "role")
+    private String role;
+
     @OneToMany(mappedBy = "employerAdmin")
     private List<HrEntity> hrEntities;
 }

@@ -13,6 +13,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SignUpDto {
+
     @NotNull(message = "First Name is required")
     @Size(min = 3, max = 50, message = "First Name must be between 3 and 50 characters")
     private String firstName;
@@ -22,7 +23,7 @@ public class SignUpDto {
     private String lastName;
 
     @NotNull(message = "Phone Number is required")
-    @Size(min = 3, max = 50, message = "Phone Number must be between 3 and 50 characters")
+    @Size(min = 10, max = 13, message = "Phone Number must be between 3 and 50 characters")
     private String phoneNumber;
 
     @NotNull(message = "Email is required")

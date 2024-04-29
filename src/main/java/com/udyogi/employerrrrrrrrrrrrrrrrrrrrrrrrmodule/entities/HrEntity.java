@@ -6,6 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,10 +28,14 @@ public class HrEntity {
     private String workLocation;
     private Boolean isHrActive;
     private Long otp;
+    @Column(name = "role")
+    private String role;
     @Lob
     private byte[] hrProfilePic;
     private String workExperience;
     @ManyToOne
     @JoinColumn(name = "employer_id")
     private EmployerAdmin employerAdmin;
+    @OneToMany(mappedBy = "hrEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<JobPost> jobPosts = new LinkedHashSet<>();
 }

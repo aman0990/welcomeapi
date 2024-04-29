@@ -1,9 +1,7 @@
 package com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.services;
 
 import com.udyogi.constants.UserConstants;
-import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.AddJobPostDto;
-import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.AdminSignUp;
-import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.HrCreateDto;
+import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.*;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.EmployerAdmin;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.HrEntity;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.JobPost;
@@ -11,7 +9,9 @@ import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.repositories.EmployerAdm
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.repositories.HrRepo;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.repositories.JobPostRepo;
 import com.udyogi.util.EmailService;
+import com.udyogi.util.PreAuthorizes;
 import com.udyogi.util.UtilService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -19,7 +19,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -47,6 +50,7 @@ public class EmployerService {
                     employerAdmin.setVerified(false);
                     employerAdmin.setPassword(passwordEncoder.encode(adminSignUp.getPassword()));
                     employerAdmin.setCustomId(generateEmployerId(adminSignUp.getCompanyName()));
+                    employerAdmin.setRole("EMPLOYER_ADMIN");
                     employerAdminRepo.save(employerAdmin);
                     emailService.sendVerificationEmail(adminSignUp.getEmail(), Math.toIntExact(employerAdmin.getOtp()));
                     return "Employer added successfully";
@@ -89,15 +93,72 @@ public class EmployerService {
         return "Invalid credentials";
     }
 
+    @Transactional
     public String addJobPost(AddJobPostDto jobPost, Long id) {
         JobPost jobP = new JobPost();
         BeanUtils.copyProperties(jobPost, jobP);
-        employerAdminRepo.findById(id).ifPresent(employerAdmin -> {
-            employerAdmin.getJobPosts().add(jobP);
-            employerAdminRepo.save(employerAdmin);
-        });
-        jobPostRepo.save(jobP);
-        return null;
+        try {
+            Optional<EmployerAdmin> employerAdmin = employerAdminRepo.findById(id);
+            Optional<HrEntity> hrEntity = hrRepo.findById(id);
+            if(employerAdmin.isPresent()){
+                jobP.setEmployerAdmin(employerAdmin.get());
+                jobPostRepo.save(jobP);
+                return "Job post added successfully for Employer Admin.";
+            } else if(hrEntity.isPresent()) {
+                jobP.setHrEntity(hrEntity.get());
+                jobPostRepo.save(jobP);
+                return "Job post added successfully for HR.";
+            } else {
+                return "User with ID " + id + " is not authorized as an Employer Admin or HR.";
+            }
+        } catch (EntityNotFoundException e) {
+            // Log the entity not found exception
+            log.error("Error adding job post: " + e.getMessage());
+            return "User with ID " + id + " not found.";
+        } catch (IllegalStateException e) {
+            // Log the illegal state exception
+            log.error("Error adding job post: " + e.getMessage());
+            return e.getMessage();
+        } catch (Exception e) {
+            // Log any other unexpected exceptions
+            log.error("Error adding job post", e);
+            return "An unexpected error occurred while adding the job post.";
+        }
+    }
+
+    // JOB Update
+    @PreAuthorizes(roles = {"EMPLOYER_ADMIN","HR"},permissions = "UPDATE_JOB_POST",logical = PreAuthorizes.Logical.ALL)
+    public ResponseEntity<String> updateJobPost(Long id, UpdateJobPostDto jobPost, String email){
+        try {
+            Optional<JobPost> jobPostOptional = jobPostRepo.findById(id);
+            EmployerAdmin employerAdmin = employerAdminRepo.findByEmail(email);
+            HrEntity hrEntity = hrRepo.findByEmail(email);
+            if (jobPostOptional.isPresent()) {
+                JobPost jobPostEntity = jobPostOptional.get();
+                BeanUtils.copyProperties(jobPost, jobPostEntity);
+                if(employerAdmin != null){
+                    jobPostEntity.setEmployerAdmin(employerAdmin);
+                    jobPostRepo.save(jobPostEntity);
+                    return ResponseEntity.status(HttpStatus.OK)
+                            .body(UserConstants.JOB_POST_UPDATED_SUCCESSFULLY_BY_EMPLOYER_ADMIN);
+                } else if(hrEntity != null) {
+                    jobPostEntity.setHrEntity(hrEntity);
+                    jobPostRepo.save(jobPostEntity);
+                    return ResponseEntity.status(HttpStatus.OK)
+                            .body(UserConstants.JOB_POST_UPDATED_SUCCESSFULLY_BY_HR);
+                } else {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body("User with ID " + id + " is not authorized as an Employer Admin or HR.");
+                }
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Job post with ID " + id + " not found.");
+            }
+        } catch (Exception e) {
+            log.error("Error updating job post", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An unexpected error occurred while updating the job post.");
+        }
     }
 
     public String addHr(String email, Long id) {
@@ -111,12 +172,13 @@ public class EmployerService {
         emailService.sendOtptoHr(email, Math.toIntExact(otp));
         hrEntity.setEmployerAdmin(employerAdminRepo.findById(id).get());
         hrEntity.setEmail(email);
+        hrEntity.setRole("HR");
         hrRepo.save(hrEntity);
         return "HR added successfully";
     }
 
     public ResponseEntity<String> updateHrProfile(String email, HrCreateDto hrCreateDto) {
-        HrEntity hrEntity = new HrEntity();
+        HrEntity hrEntity = hrRepo.findByEmail(email);
         if(Objects.isNull(hrCreateDto)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(UserConstants.NOT_ACCEPTABLE_406);
         }
@@ -128,27 +190,80 @@ public class EmployerService {
             hrEntity.setHrName(hrCreateDto.getHrName());
             hrEntity.setWorkExperience(hrCreateDto.getWorkExperience());
             hrEntity.setWorkLocation(hrCreateDto.getWorkLocation());
-            hrEntity.setHrProfilePic(hrCreateDto.getHrProfilePic());
-            hrEntity.setHrPassword(passwordEncoder.encode(hrCreateDto.getHrPassword()));
-            var hrEmail = employerAdminRepo.findByEmail(email);
-            if (Objects.nonNull(hrEmail)) {
-                employerAdminRepo.save(hrEmail);
-                emailService.sendConfirmationEmail(hrEmail.getEmail());
-                return ResponseEntity.status(HttpStatus.CREATED).body(UserConstants.HR_ACCOUNT_CREATED_SUCCESSFULLY);
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(UserConstants.FAILED_TO_CREATE_USER_ACCOUNT);
-            }
+            hrRepo.save(hrEntity);
+            emailService.sendConfirmationEmail(hrEntity.getEmail());
+            return ResponseEntity.status(HttpStatus.OK).body(UserConstants.HR_PROFILE_UPDATED_SUCCESSFULLY);
         }
     }
 
-    public String verifyHrOtp(String email, Long otp) {
+    public String verifyHrOtp(String email, Long otp, String password) {
         if(Boolean.TRUE.equals(utilService.verifyEmail(email, otp))) {
-            HrEntity hrEntity = new HrEntity();
+            HrEntity hrEntity = hrRepo.findByEmail(email);
             hrEntity.setIsHrActive(true);
+            hrEntity.setHrPassword(passwordEncoder.encode(password));
             hrRepo.save(hrEntity);
-            //updateHrProfile(email, new HrCreateDto());
             return "HR verified successfully";
         }
         return "Error occurred while verifying HR";
+    }
+
+    public ResponseEntity<CommonResponseDto> loginHrProfile(String email, String password) {
+        HrEntity hrEntity = hrRepo.findByEmail(email);
+        if (hrEntity == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).
+                    body(new CommonResponseDto(null, UserConstants.USER_NOT_FOUND_MESSAGE + email));
+        }
+        if (Boolean.FALSE.equals(hrEntity.getIsHrActive())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).
+                    body(new CommonResponseDto(null, UserConstants.HR_NOT_ACTIVE));
+        }
+        if (passwordEncoder.matches(password, hrEntity.getHrPassword())) {
+            HrCreateDto hrCreateDto = new HrCreateDto();
+            BeanUtils.copyProperties(hrEntity, hrCreateDto);
+            return ResponseEntity.status(HttpStatus.OK).
+                    body(new CommonResponseDto(hrCreateDto, UserConstants.LOGIN_SUCCESSFUL_MESSAGE));
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).
+                body(new CommonResponseDto(null, UserConstants.INVALID_CREDENTIALS));
+    }
+
+    @Transactional
+    public ResponseEntity<String> updateHrProfilePic(String email, MultipartFile profilePic) {
+        try {
+            HrEntity hrEntity = hrRepo.findByEmail(email);
+            if (hrEntity == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("HR not found with email: " + email);
+            }
+
+            if (profilePic == null || profilePic.isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body("Profile picture cannot be null or empty");
+            }
+
+            hrEntity.setHrProfilePic(profilePic.getBytes());
+            hrRepo.save(hrEntity);
+
+            return ResponseEntity.ok("Profile picture updated successfully");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to update profile picture");
+        }
+    }
+
+    public byte[] getProfilePhoto(String email) {
+        HrEntity hrEntity = hrRepo.findByEmail(email);
+        if (hrEntity != null && hrEntity.getHrProfilePic() != null) {
+            return hrEntity.getHrProfilePic();
+        } else {
+            // Return default profile photo or handle the case when no profile photo is available
+            return getDefaultProfilePhoto(); // Implement this method to return a default image
+        }
+    }
+
+    private byte[] getDefaultProfilePhoto() {
+        // Implement logic to load and return a default profile photo
+        return new byte[0]; // Placeholder implementation
     }
 }
