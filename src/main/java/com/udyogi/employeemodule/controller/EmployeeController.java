@@ -55,9 +55,14 @@ public class EmployeeController {
                     .body(UserConstants.FAILED_TO_CREATE_USER_ACCOUNT);
         }
     }
+    @GetMapping("/set")
+    public String set() {
+        return "Welcome to Udyogi set Employee Module";
+    }
+
     @GetMapping("/get")
-    public String home() {
-        return "Welcome to Udyogi Employee Module";
+    public String get() {
+        return "Welcome to Udyogi get Employee Module";
     }
 
     /**

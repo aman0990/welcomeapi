@@ -7,6 +7,8 @@ import lombok.*;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import java.util.Set;
+
 @Getter
 @Setter
 @Entity
@@ -42,5 +44,5 @@ public class EmployeeEntity {
 
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<JobRecommendation> jobRecommendations = new LinkedHashSet<>();
-
+   
 }
