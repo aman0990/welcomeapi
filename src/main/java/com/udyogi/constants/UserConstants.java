@@ -126,4 +126,6 @@ public class UserConstants {
     public static final String FAILED_TO_LOGIN_HR_PROFILE = "Failed to login HR profile";
     public static final String HR_PROFILE_UPDATED_SUCCESSFULLY = "HR profile updated successfully";
     public static final Object FAILED_TO_RECOMMEND_JOBS = "Failed to recommend jobs";
+    public static final String JOB_POST_UPDATED_SUCCESSFULLY_BY_EMPLOYER_ADMIN = "Job post updated successfully by employer admin";
+    public static final String JOB_POST_UPDATED_SUCCESSFULLY_BY_HR = "Job post updated successfully by HR";
 }

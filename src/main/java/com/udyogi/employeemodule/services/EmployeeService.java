@@ -55,13 +55,11 @@ public class EmployeeService {
             if (signUpDto == null) {
                 throw new IllegalArgumentException("SignUpDto is null");
             }
-
             EmployeeEntity existingEmployee = employeeRepo.findByEmail(signUpDto.getEmail());
             if (existingEmployee != null) {
                 return ResponseEntity.status(HttpStatus.ALREADY_REPORTED)
                         .body(UserConstants.USER_WITH_USERNAME_OR_EMAIL_ALREADY_EXISTS);
             }
-
             EmployeeEntity employeeEntity = EmployeeMapper.mapSignUpDtoToEmployeeEntity(signUpDto);
             var otp = utilService.generateOtp();
             employeeEntity.setOtp(otp);
@@ -151,9 +149,7 @@ public class EmployeeService {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(UserConstants.USER_DETAILS_CAN_NOT_BE_NULL);
             }
-
             EmployeeEntity employeeEntity = employeeRepo.findByEmployeeId(id);
-
             if (employeeEntity == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(UserConstants.USER_NOT_FOUND + " " + id);
@@ -184,9 +180,7 @@ public class EmployeeService {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(UserConstants.USER_DETAILS_CAN_NOT_BE_NULL);
             }
-
             EmployeeEntity employeeEntity = employeeRepo.findByEmployeeId(id);
-
             if (employeeEntity == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(UserConstants.USER_NOT_FOUND + " " + id);

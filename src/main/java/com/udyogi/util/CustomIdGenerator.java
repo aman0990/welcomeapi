@@ -1,8 +1,6 @@
 package com.udyogi.util;
 
 import com.udyogi.employeemodule.repositories.EmployeeRepo;
-import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.AdminSignUp;
-import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.repositories.EmployerAdminRepo;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 

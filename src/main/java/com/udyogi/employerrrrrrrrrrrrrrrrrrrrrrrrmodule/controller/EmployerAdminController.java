@@ -1,10 +1,7 @@
 package com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.controller;
 
 import com.udyogi.constants.UserConstants;
-import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.AddJobPostDto;
-import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.AdminSignUp;
-import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.CommonResponseDto;
-import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.HrCreateDto;
+import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.*;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.services.EmployerService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -67,9 +64,9 @@ public class EmployerAdminController {
     }
     // bhai update post test kr lena aata hun 10 mnt me !!
     @PutMapping("/update-jobpost/{id}")
-    public ResponseEntity<String> updateJobPost(@RequestBody AddJobPostDto jobPost ,@PathVariable Long id) {
+    public ResponseEntity<String> updateJobPost(@RequestBody UpdateJobPostDto jobPost , @PathVariable Long id, @RequestParam String email) {
         try {
-            employerService.updateJobPost(id, jobPost);
+            employerService.updateJobPost(id, jobPost, email);
             log.info("Job post updated successfully");
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {

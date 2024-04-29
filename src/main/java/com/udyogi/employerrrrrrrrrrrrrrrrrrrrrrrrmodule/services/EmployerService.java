@@ -1,10 +1,7 @@
 package com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.services;
 
 import com.udyogi.constants.UserConstants;
-import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.AddJobPostDto;
-import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.AdminSignUp;
-import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.CommonResponseDto;
-import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.HrCreateDto;
+import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.*;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.EmployerAdmin;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.HrEntity;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.JobPost;
@@ -12,6 +9,7 @@ import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.repositories.EmployerAdm
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.repositories.HrRepo;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.repositories.JobPostRepo;
 import com.udyogi.util.EmailService;
+import com.udyogi.util.PreAuthorizes;
 import com.udyogi.util.UtilService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
@@ -129,21 +127,37 @@ public class EmployerService {
     }
 
     // JOB Update
-    public ResponseEntity<String> updateJobPost(Long id, AddJobPostDto jobPost) {
+    @PreAuthorizes(roles = {"EMPLOYER_ADMIN","HR"},permissions = "UPDATE_JOB_POST",logical = PreAuthorizes.Logical.ALL)
+    public ResponseEntity<String> updateJobPost(Long id, UpdateJobPostDto jobPost, String email){
         try {
             Optional<JobPost> jobPostOptional = jobPostRepo.findById(id);
+            EmployerAdmin employerAdmin = employerAdminRepo.findByEmail(email);
+            HrEntity hrEntity = hrRepo.findByEmail(email);
             if (jobPostOptional.isPresent()) {
                 JobPost jobPostEntity = jobPostOptional.get();
                 BeanUtils.copyProperties(jobPost, jobPostEntity);
-                jobPostRepo.save(jobPostEntity);
-                return ResponseEntity.ok("Job post updated successfully");
+                if(employerAdmin != null){
+                    jobPostEntity.setEmployerAdmin(employerAdmin);
+                    jobPostRepo.save(jobPostEntity);
+                    return ResponseEntity.status(HttpStatus.OK)
+                            .body(UserConstants.JOB_POST_UPDATED_SUCCESSFULLY_BY_EMPLOYER_ADMIN);
+                } else if(hrEntity != null) {
+                    jobPostEntity.setHrEntity(hrEntity);
+                    jobPostRepo.save(jobPostEntity);
+                    return ResponseEntity.status(HttpStatus.OK)
+                            .body(UserConstants.JOB_POST_UPDATED_SUCCESSFULLY_BY_HR);
+                } else {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body("User with ID " + id + " is not authorized as an Employer Admin or HR.");
+                }
             } else {
-                return ResponseEntity.notFound().build();
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Job post with ID " + id + " not found.");
             }
         } catch (Exception e) {
-            log.error("Error occurred while updating job post", e);
+            log.error("Error updating job post", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error occurred while updating job post");
+                    .body("An unexpected error occurred while updating the job post.");
         }
     }
 
