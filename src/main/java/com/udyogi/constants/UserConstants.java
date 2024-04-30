@@ -133,4 +133,8 @@ public class UserConstants {
     public static final String ERROR_GETTING_RECENT_JOB_POSTS = "Error getting recent job posts";
     public static final String ALL_USERS = "All users";
     public static final String ERROR_GETTING_ALL_USERS = "Error getting all users";
+    public static final String ERROR_GETTING_ALL_JOB_POSTS = "Error getting all job posts";
+    public static final String ALL_JOB_POSTS = "All job posts";
+    public static final String NO_JOB_POSTS_FOUND = "No job posts found";
+    public static final String NO_HR_ENTITIES_FOUND = "No HR entities found";
 }

@@ -17,5 +17,8 @@ public interface JobPostRepo extends JpaRepository<JobPost, Long>{
 
     List<JobPost> findByEmployerAdmin(EmployerAdmin employerAdmin);
 
-    //List<JobPost> findByHrEntity(List<HrEntity> hrEntity);
+    List<JobPost> findByHrEntity(HrEntity hrEntity);
+
+    // Query method to find JobPosts by a list of HrEntity instances
+    List<JobPost> findByHrEntityIn(List<HrEntity> hrEntities);
 }

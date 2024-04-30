@@ -25,10 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -337,5 +334,49 @@ public class EmployerService {
 
     private byte[] getDefaultProfilePhoto() {
         return new byte[0];
+    }
+
+    public ResponseEntity<CommonResponseDto> getAllPosts(String email) {
+        try {
+            // Find the EmployerAdmin based on the provided email
+            EmployerAdmin employerAdmin = employerAdminRepo.findByEmail(email);
+            if (employerAdmin == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new CommonResponseDto(null, UserConstants.USER_NOT_FOUND + ": " + email));
+            }
+
+            // Find all HrEntity instances associated with the EmployerAdmin
+            List<HrEntity> hrEntities = hrRepo.findByEmployerAdmin(employerAdmin);
+            if (hrEntities.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new CommonResponseDto(null, UserConstants.NO_HR_ENTITIES_FOUND));
+            }
+
+            List<AllJobPostsDto> allJobPostsDtoList = new ArrayList<>();
+            for (HrEntity hr : hrEntities) {
+                Set<JobPost> jobPosts = hr.getJobPosts();
+                if (!jobPosts.isEmpty()) {
+                    // Get the first job post for basic details (if available)
+                    JobPost firstJobPost = jobPosts.iterator().next();
+
+                    AllJobPostsDto allJobPostsDto = new AllJobPostsDto();
+                    allJobPostsDto.setJobId(firstJobPost.getId());
+                    allJobPostsDto.setJobTitle(firstJobPost.getJobTitle());
+                    allJobPostsDto.setExperience(hr.getWorkExperience());
+                    allJobPostsDto.setSalary(firstJobPost.getSalary());
+                    allJobPostsDto.setCo_Ordinator_Name(hr.getHrName());
+                    allJobPostsDto.setApplications(jobPosts.size());
+                    allJobPostsDto.setCreatedDate(firstJobPost.getCreatedDate());
+                    allJobPostsDto.setActive(firstJobPost.getActive());
+                    allJobPostsDtoList.add(allJobPostsDto);
+                }
+            }
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new CommonResponseDto(allJobPostsDtoList, UserConstants.ALL_JOB_POSTS));
+        } catch (Exception e) {
+            log.error("Error getting all job posts", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new CommonResponseDto(null, UserConstants.ERROR_GETTING_ALL_JOB_POSTS));
+        }
     }
 }
