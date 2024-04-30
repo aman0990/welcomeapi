@@ -65,7 +65,7 @@ public class UtilService {
             }
         } else if (hrRepo.existsByEmail(email)) {
             var unique = uniqueEmail(email);
-            if (Boolean.TRUE.equals(unique)) {
+            if (Boolean.FALSE.equals(unique)) {
                 HrEntity hrEntity = hrRepo.findByEmail(email);
                 return Objects.equals(hrEntity.getOtp(), otp);
             }

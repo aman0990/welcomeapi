@@ -75,6 +75,30 @@ public class EmployerAdminController {
         }
     }
 
+    @GetMapping("/get-recent-job-posts/{email}")
+    public ResponseEntity<CommonResponseDto> getRecentJobPost(@PathVariable String email) {
+        try {
+            CommonResponseDto commonResponseDto = employerService.getRecentJobPost(email).getBody();
+            log.info("Recent job posts retrieved successfully");
+            return new ResponseEntity<>(commonResponseDto, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error occurred while retrieving recent job posts", e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/get-all-users/{email}")
+    public ResponseEntity<CommonResponseDto> getAllUsers(@PathVariable String email) {
+        try {
+            CommonResponseDto commonResponseDto = employerService.getAllUsers(email).getBody();
+            log.info("All users retrieved successfully");
+            return new ResponseEntity<>(commonResponseDto, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error occurred while retrieving all users", e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     // adding HR by sending OTP to HR email taking HR email as input and admin number
     @PostMapping("/add-hr/{email}")
     public ResponseEntity<String> addHr(@PathVariable String email, @RequestParam Long id) {

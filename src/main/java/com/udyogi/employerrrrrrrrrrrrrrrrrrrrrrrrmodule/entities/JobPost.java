@@ -12,10 +12,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Getter
 @Setter
@@ -45,6 +42,7 @@ public class JobPost {
     private String salary;
     private String jobDescription;
     private String responsibilities;
+    private Boolean active;
     private String aboutCompany;
     @ElementCollection
     @Column(name = "question")
@@ -55,7 +53,7 @@ public class JobPost {
     private EmployerAdmin employerAdmin;
     @CreationTimestamp
     @Column(name = "created_date", updatable = false)
-    private LocalDateTime createdDate;
+    private Date createdDate;
 
     @UpdateTimestamp
     @Column(name = "updated_date", insertable = false)

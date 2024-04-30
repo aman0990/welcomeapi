@@ -36,7 +36,7 @@ public class DataLoader {
             employee.setEmail("employee" + i + "@example.com");
             employee.setPassword(passwordEncoder.encode("password"+i));
             employee.setGender(random.nextBoolean() ? "Male" : "Female");
-            employee.setOtp(random.nextInt(10000));
+            employee.setOtp((long) random.nextInt(10000));
             employee.setVerified(random.nextBoolean());
             employee.setCustomId(generateCustomId(i));
             employees.add(employee);

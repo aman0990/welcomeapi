@@ -128,4 +128,9 @@ public class UserConstants {
     public static final Object FAILED_TO_RECOMMEND_JOBS = "Failed to recommend jobs";
     public static final String JOB_POST_UPDATED_SUCCESSFULLY_BY_EMPLOYER_ADMIN = "Job post updated successfully by employer admin";
     public static final String JOB_POST_UPDATED_SUCCESSFULLY_BY_HR = "Job post updated successfully by HR";
+    public static final String RECENT_JOB_POSTS_BY_EMPLOYER_ADMIN = "Recent job posts by employer admin";
+    public static final String RECENT_JOB_POSTS_BY_HR = "Recent job posts by HR";
+    public static final String ERROR_GETTING_RECENT_JOB_POSTS = "Error getting recent job posts";
+    public static final String ALL_USERS = "All users";
+    public static final String ERROR_GETTING_ALL_USERS = "Error getting all users";
 }

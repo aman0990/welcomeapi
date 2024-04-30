@@ -1,6 +1,7 @@
 package com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -57,5 +58,6 @@ public class EmployerAdmin {
     private String role;
 
     @OneToMany(mappedBy = "employerAdmin")
+    @JsonManagedReference
     private List<HrEntity> hrEntities;
 }

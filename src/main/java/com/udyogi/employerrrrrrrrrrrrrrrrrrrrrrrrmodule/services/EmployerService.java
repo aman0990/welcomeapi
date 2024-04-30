@@ -1,6 +1,8 @@
 package com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.services;
 
 import com.udyogi.constants.UserConstants;
+import com.udyogi.employeemodule.entities.JobApplicationEntity;
+import com.udyogi.employeemodule.repositories.JobApplicationEntityRepository;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.*;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.EmployerAdmin;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.HrEntity;
@@ -23,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -36,6 +39,7 @@ public class EmployerService {
     private final UtilService utilService;
     private final EmailService emailService;
     private final JobPostRepo jobPostRepo;
+    private final JobApplicationEntityRepository jobApplicationEntityRepository;
     private final PasswordEncoder passwordEncoder;
     private static final String PREFIX = "UDY-";
     private static final String PADDING = "00000";
@@ -159,6 +163,96 @@ public class EmployerService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("An unexpected error occurred while updating the job post.");
         }
+    }
+
+    // Recent Job Post
+    public ResponseEntity<CommonResponseDto> getRecentJobPost(String email) {
+        try {
+            EmployerAdmin employerAdmin = employerAdminRepo.findByEmail(email);
+            HrEntity hrEntity = hrRepo.findByEmail(email);
+            if (employerAdmin != null) {
+                return ResponseEntity.status(HttpStatus.OK)
+                        .body(new CommonResponseDto(jobPostRepo.findTop5ByEmployerAdminOrderByCreatedDateDesc(employerAdmin),
+                                UserConstants.RECENT_JOB_POSTS_BY_EMPLOYER_ADMIN));
+            } else if (hrEntity != null) {
+                return ResponseEntity.status(HttpStatus.OK)
+                        .body(new CommonResponseDto(jobPostRepo.findTop5ByHrEntityOrderByCreatedDateDesc(hrEntity),
+                                UserConstants.RECENT_JOB_POSTS_BY_HR));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new CommonResponseDto(null, "User with email " + email + " not found."));
+            }
+        } catch (Exception e) {
+            log.error("Error getting recent job posts", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new CommonResponseDto(null, UserConstants.ERROR_GETTING_RECENT_JOB_POSTS));
+        }
+    }
+
+    // All Users
+    public ResponseEntity<CommonResponseDto> getAllUsers(String email) {
+        try{
+            EmployerAdmin employerAdmin = employerAdminRepo.findByEmail(email);
+            List<HrEntity> hrEntity = hrRepo.findByEmployerAdmin(employerAdmin);
+           /* Long noOfJobPost = jobPostRepo.*/
+            if(!hrEntity.isEmpty()){
+                AllUsersData allUsersData = new AllUsersData();
+                hrEntity.forEach(hr -> {
+                    allUsersData.setId(hr.getHrId());
+                    allUsersData.setCo_Ordinator_Name(hr.getHrName());
+                    allUsersData.setCo_Ordinator_Email(hr.getEmail());
+                    allUsersData.setNumberOfPosts(String.valueOf(hr.getJobPosts().size()));
+                    JobApplicationEntity jobApplicationEntity = new JobApplicationEntity();
+                    var jobPosts = jobApplicationEntity.getJobPost();
+                    allUsersData.setJobPostDate(jobPosts.getCreatedDate());
+                    allUsersData.setActive(jobPostRepo.findById(jobPosts.getId()).get().getActive());
+                });
+                /*allUsersData.setNumberOfApplicationReceived(noOfJobPost);*/
+                return ResponseEntity.status(HttpStatus.OK)
+                        .body(new CommonResponseDto(allUsersData, UserConstants.ALL_USERS));
+            }else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new CommonResponseDto(null, UserConstants.USER_NOT_FOUND + ": " +email));
+            }
+        } catch (Exception e) {
+            log.error("Error getting all users", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new CommonResponseDto(null, UserConstants.ERROR_GETTING_ALL_USERS));
+        }
+
+            /*// data aana chahiye aisa ui k jaisa check kr lena
+            EmployerAdmin employerAdmin = employerAdminRepo.findByEmail(email);
+//            HrEntity hrEntity = hrRepo.findAll().stream().filter(hr ->
+//                    hr.getEmployerAdmin().equals(employerAdmin)).findFirst().orElse(null);
+           List<HrEntity> hrEntity = hrRepo.findAll();
+           Integer noOfJobPost = jobApplicationEntityRepository.findAll().size();
+            if(!hrEntity.isEmpty()){
+                AllUsersData allUsersData = new AllUsersData();
+                hrEntity.forEach(hr -> {
+                    if(hr.getEmployerAdmin().equals(employerAdmin)){
+
+                        allUsersData.setId(hr.getHrId());
+                        allUsersData.setCo_Ordinator_Name(hr.getHrName());
+                        allUsersData.setCo_Ordinator_Email(hr.getEmail());
+                        allUsersData.setNumberOfPosts(String.valueOf(hr.getJobPosts().size()));
+                        JobApplicationEntity jobApplicationEntity = new JobApplicationEntity();
+                        var jobPosts = jobApplicationEntity.getJobPost();
+                        allUsersData.setJobPostDate(jobPosts.getCreatedDate());
+                        allUsersData.setActive(jobPostRepo.findById(jobPosts.getId()).get().getActive());
+                    }
+                });
+//
+                allUsersData.setNumberOfApplicationReceived(noOfJobPost);
+                return ResponseEntity.status(HttpStatus.OK)
+                        .body(new CommonResponseDto(allUsersData, UserConstants.ALL_USERS));
+            }else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new CommonResponseDto(null, "User with email " + email + " not found."));
+            }
+        } catch (Exception e) {
+            log.error("Error getting all users", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new CommonResponseDto(null, UserConstants.ERROR_GETTING_ALL_USERS));*/
     }
 
     public String addHr(String email, Long id) {
