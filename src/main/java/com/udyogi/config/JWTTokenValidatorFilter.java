@@ -1,3 +1,4 @@
+/*
 package com.udyogi.config;
 
 import io.jsonwebtoken.Claims;
@@ -52,4 +53,4 @@ public class JWTTokenValidatorFilter  extends OncePerRequestFilter {
         return request.getServletPath().equals("/user");
     }
 
-}
+}*/

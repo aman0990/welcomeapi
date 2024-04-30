@@ -54,6 +54,9 @@ public class EmployerAdmin {
     @Column(name = "custom_id", nullable = false, unique = true, length = 50)
     private String customId;
 
+    @Column(name = "employer_custom_id")
+    private String employerCustomId;
+
     @Column(name = "role")
     private String role;
 

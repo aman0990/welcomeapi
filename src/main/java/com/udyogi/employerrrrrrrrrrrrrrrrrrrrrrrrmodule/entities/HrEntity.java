@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -42,10 +41,15 @@ public class HrEntity {
     private byte[] hrProfilePic;
     private String workExperience;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "employer_id")
+    /*@JoinColumn(name = "employer_custom_id", referencedColumnName = "employerCustomId", nullable = false)*/
+    @JoinTable(name = "employer_admin_hr_entity",
+            joinColumns = @JoinColumn(name = "employer_custom_id"),
+            inverseJoinColumns = @JoinColumn(name = "hr_custom_id"))
     @JsonBackReference
     @JsonIgnore
     private EmployerAdmin employerAdmin;
+    @Column(name = "hr_custom_id")
+    private String hrCustomId;
     @OneToMany(mappedBy = "hrEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<JobPost> jobPosts = new LinkedHashSet<>();
 }

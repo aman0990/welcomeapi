@@ -54,30 +54,13 @@ public class EmployerService {
                     employerAdmin.setVerified(false);
                     employerAdmin.setPassword(passwordEncoder.encode(adminSignUp.getPassword()));
                     employerAdmin.setCustomId(generateEmployerId(adminSignUp.getCompanyName()));
+                    employerAdmin.setEmployerCustomId(generateEmployerIds(adminSignUp.getCompanyName()));
                     employerAdmin.setRole("EMPLOYER_ADMIN");
                     employerAdminRepo.save(employerAdmin);
                     emailService.sendVerificationEmail(adminSignUp.getEmail(), Math.toIntExact(employerAdmin.getOtp()));
                     return "Employer added successfully";
                 })
                 .orElse("Employer not found");
-        /*EmployerAdmin employerAdmin = new EmployerAdmin();
-        employerAdmin.setCompanyName(adminSignUp.getCompanyName());
-        employerAdmin.setCompanyType(adminSignUp.getCompanyType());
-        employerAdmin.setMobileNumber(adminSignUp.getMobileNumber());
-        employerAdmin.setEmail(adminSignUp.getEmail());
-        employerAdmin.setAddress(adminSignUp.getAddress());
-        employerAdmin.setCompanyUrl(adminSignUp.getCompanyUrl());
-        employerAdmin.setNumberOfEmployees(adminSignUp.getNumberOfEmployees());
-        employerAdmin.setEstablishedYear(adminSignUp.getEstablishedYear());
-        employerAdmin.setIncorporateId(adminSignUp.getIncorporateId());
-        employerAdmin.setAboutCompany(adminSignUp.getAboutCompany());
-        employerAdmin.setOtp(utilService.generateOtp());
-        employerAdmin.setVerified(false);
-        employerAdmin.setPassword(passwordEncoder.encode(adminSignUp.getPassword()));
-        employerAdmin.setCustomId(generateEmployerId(adminSignUp.getCompanyName()));
-        emailService.sendVerificationEmail(adminSignUp.getEmail(), employerAdmin.getOtp());
-        employerAdminRepo.save(employerAdmin);
-        return "Employer added successfully";*/
     }
 
     public String generateEmployerId(String companyName) {
@@ -85,6 +68,27 @@ public class EmployerService {
         counter++;
         return PREFIX + companyName + PADDING.substring(String.valueOf(counter).length()) + counter;
     }
+
+    // input chaman Company
+    // expected output UDY-AD-chaman00004
+    private String generateEmployerIds(String companyName) {
+        var PREFIXED = "UDY-AD-";
+        var PADDED = "00000";
+        var counter = employerAdminRepo.findAll().size();
+        counter++;
+        var paddedCounter = String.format("%05d", counter);
+        return PREFIXED + companyName.split(" ")[0] + PADDED.substring(paddedCounter.length()) + paddedCounter;
+    }
+
+    private String generateHrIds(String companyName) {
+        var PREFIXED = "UDY-HR-";
+        var PADDED = "00000";
+        var counter = employerAdminRepo.findAll().size();
+        counter++;
+        var paddedCounter = String.format("%05d", counter);
+        return PREFIXED + companyName.split(" ")[0] + PADDED.substring(paddedCounter.length()) + paddedCounter;
+    }
+
 
     public String loginEmployer(String email, String password) {
         EmployerAdmin employerAdmin = employerAdminRepo.findByEmail(email);
@@ -98,33 +102,38 @@ public class EmployerService {
     }
 
     @Transactional
-    public String addJobPost(AddJobPostDto jobPost, Long id) {
+    public String addJobPost(AddJobPostDto jobPost, String customId) {
         JobPost jobP = new JobPost();
         BeanUtils.copyProperties(jobPost, jobP);
         try {
-            Optional<EmployerAdmin> employerAdmin = employerAdminRepo.findById(id);
-            Optional<HrEntity> hrEntity = hrRepo.findById(id);
+            Optional<EmployerAdmin> employerAdmin = employerAdminRepo.findByEmployerCustomId(customId);
+            Optional<HrEntity> hrEntity = hrRepo.findByHrCustomId(customId);
             if(employerAdmin.isPresent()){
-                jobP.setEmployerAdmin(employerAdmin.get());
-                jobPostRepo.save(jobP);
-                return "Job post added successfully for Employer Admin.";
+                if(Boolean.TRUE.equals(employerAdmin.get().getVerified())) {
+                    jobP.setEmployerAdmin(employerAdmin.get());
+                    jobPostRepo.save(jobP);
+                    return "Job post added successfully for Employer Admin.";
+                } else {
+                    return "Employer Admin with ID " + customId + " is not verified.";
+                }
             } else if(hrEntity.isPresent()) {
-                jobP.setHrEntity(hrEntity.get());
-                jobPostRepo.save(jobP);
-                return "Job post added successfully for HR.";
+                if(Boolean.TRUE.equals(hrEntity.get().getIsHrActive())) {
+                    jobP.setHrEntity(hrEntity.get());
+                    jobPostRepo.save(jobP);
+                    return "Job post added successfully for HR.";
+                } else {
+                    return "HR with ID " + customId + " is not active.";
+                }
             } else {
-                return "User with ID " + id + " is not authorized as an Employer Admin or HR.";
+                return "User with ID " + customId + " is not authorized as an Employer Admin or HR.";
             }
         } catch (EntityNotFoundException e) {
-            // Log the entity not found exception
             log.error("Error adding job post: " + e.getMessage());
-            return "User with ID " + id + " not found.";
+            return "User with ID " + customId + " not found.";
         } catch (IllegalStateException e) {
-            // Log the illegal state exception
-            log.error("Error adding job post: " + e.getMessage());
+            log.error("Error adding job posts: " + e.getMessage());
             return e.getMessage();
         } catch (Exception e) {
-            // Log any other unexpected exceptions
             log.error("Error adding job post", e);
             return "An unexpected error occurred while adding the job post.";
         }
@@ -194,7 +203,6 @@ public class EmployerService {
         try{
             EmployerAdmin employerAdmin = employerAdminRepo.findByEmail(email);
             List<HrEntity> hrEntity = hrRepo.findByEmployerAdmin(employerAdmin);
-           /* Long noOfJobPost = jobPostRepo.*/
             if(!hrEntity.isEmpty()){
                 AllUsersData allUsersData = new AllUsersData();
                 hrEntity.forEach(hr -> {
@@ -207,7 +215,6 @@ public class EmployerService {
                     allUsersData.setJobPostDate(jobPosts.getCreatedDate());
                     allUsersData.setActive(jobPostRepo.findById(jobPosts.getId()).get().getActive());
                 });
-                /*allUsersData.setNumberOfApplicationReceived(noOfJobPost);*/
                 return ResponseEntity.status(HttpStatus.OK)
                         .body(new CommonResponseDto(allUsersData, UserConstants.ALL_USERS));
             }else {
@@ -219,40 +226,6 @@ public class EmployerService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new CommonResponseDto(null, UserConstants.ERROR_GETTING_ALL_USERS));
         }
-
-            /*// data aana chahiye aisa ui k jaisa check kr lena
-            EmployerAdmin employerAdmin = employerAdminRepo.findByEmail(email);
-//            HrEntity hrEntity = hrRepo.findAll().stream().filter(hr ->
-//                    hr.getEmployerAdmin().equals(employerAdmin)).findFirst().orElse(null);
-           List<HrEntity> hrEntity = hrRepo.findAll();
-           Integer noOfJobPost = jobApplicationEntityRepository.findAll().size();
-            if(!hrEntity.isEmpty()){
-                AllUsersData allUsersData = new AllUsersData();
-                hrEntity.forEach(hr -> {
-                    if(hr.getEmployerAdmin().equals(employerAdmin)){
-
-                        allUsersData.setId(hr.getHrId());
-                        allUsersData.setCo_Ordinator_Name(hr.getHrName());
-                        allUsersData.setCo_Ordinator_Email(hr.getEmail());
-                        allUsersData.setNumberOfPosts(String.valueOf(hr.getJobPosts().size()));
-                        JobApplicationEntity jobApplicationEntity = new JobApplicationEntity();
-                        var jobPosts = jobApplicationEntity.getJobPost();
-                        allUsersData.setJobPostDate(jobPosts.getCreatedDate());
-                        allUsersData.setActive(jobPostRepo.findById(jobPosts.getId()).get().getActive());
-                    }
-                });
-//
-                allUsersData.setNumberOfApplicationReceived(noOfJobPost);
-                return ResponseEntity.status(HttpStatus.OK)
-                        .body(new CommonResponseDto(allUsersData, UserConstants.ALL_USERS));
-            }else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new CommonResponseDto(null, "User with email " + email + " not found."));
-            }
-        } catch (Exception e) {
-            log.error("Error getting all users", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new CommonResponseDto(null, UserConstants.ERROR_GETTING_ALL_USERS));*/
     }
 
     public String addHr(String email, Long id) {
@@ -262,10 +235,12 @@ public class EmployerService {
             return "HR already exists";
         }
         var otp = utilService.generateOtp();
+        var employer = employerAdminRepo.findById(id).get();
         hrEntity.setOtp(otp);
         emailService.sendOtptoHr(email, Math.toIntExact(otp));
-        hrEntity.setEmployerAdmin(employerAdminRepo.findById(id).get());
+        hrEntity.setEmployerAdmin(employer);
         hrEntity.setEmail(email);
+        hrEntity.setHrCustomId(generateHrIds(employer.getCompanyName()));
         hrEntity.setRole("HR");
         hrRepo.save(hrEntity);
         return "HR added successfully";
@@ -329,18 +304,15 @@ public class EmployerService {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body("HR not found with email: " + email);
             }
-
             if (profilePic == null || profilePic.isEmpty()) {
                 return ResponseEntity.badRequest()
                         .body("Profile picture cannot be null or empty");
             }
-
             hrEntity.setHrProfilePic(profilePic.getBytes());
             hrRepo.save(hrEntity);
-
             return ResponseEntity.ok("Profile picture updated successfully");
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Error updating profile picture", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to update profile picture");
         }
@@ -351,13 +323,11 @@ public class EmployerService {
         if (hrEntity != null && hrEntity.getHrProfilePic() != null) {
             return hrEntity.getHrProfilePic();
         } else {
-            // Return default profile photo or handle the case when no profile photo is available
-            return getDefaultProfilePhoto(); // Implement this method to return a default image
+            return getDefaultProfilePhoto();
         }
     }
 
     private byte[] getDefaultProfilePhoto() {
-        // Implement logic to load and return a default profile photo
-        return new byte[0]; // Placeholder implementation
+        return new byte[0];
     }
 }

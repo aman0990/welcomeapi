@@ -1,3 +1,4 @@
+/*
 package com.udyogi.config;
 
 import com.udyogi.employeemodule.entities.Authority;
@@ -51,3 +52,4 @@ return new UsernamePasswordAuthenticationToken(username,password,getGrantedAutho
         return (UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication));
     }
 }
+*/

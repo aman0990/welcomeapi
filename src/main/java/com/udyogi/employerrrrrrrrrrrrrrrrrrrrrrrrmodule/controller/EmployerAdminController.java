@@ -32,7 +32,6 @@ public class EmployerAdminController {
             log.info("Employer added successfully: {}", adminSignUp.getCompanyName());
             return new ResponseEntity<>(msg, HttpStatus.OK);
         } catch (Exception e) {
-            e.printStackTrace();
             log.error("Error occurred while adding employer", e);
             return new ResponseEntity<>("Error occurred while adding employer", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -45,16 +44,15 @@ public class EmployerAdminController {
             log.info("Employer logged in successfully: {}", email);
             return new ResponseEntity<>("Employer logged in successfully", HttpStatus.OK);
         } catch (Exception e) {
-            e.printStackTrace();
             log.error("Error occurred while logging in employer", e);
             return new ResponseEntity<>("Error occurred while logging in employer", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @PostMapping("/add-jobpost/{id}")
-    public ResponseEntity<String> addJobPost(@RequestBody AddJobPostDto jobPost ,@PathVariable Long id) {
-        try {
-            String msg=employerService.addJobPost(jobPost,id);
+    @PostMapping("/add-jobpost/{customId}")
+    public ResponseEntity<String> addJobPost(@RequestBody AddJobPostDto jobPost ,@PathVariable String customId) {
+        try{
+            String msg = employerService.addJobPost(jobPost,customId);
             log.info("Job post added successfully");
             return new ResponseEntity<>(msg, HttpStatus.OK);
         } catch (Exception e) {
@@ -62,6 +60,7 @@ public class EmployerAdminController {
             return new ResponseEntity<>("Error occurred while adding job post", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     // bhai update post test kr lena aata hun 10 mnt me !!
     @PutMapping("/update-jobpost/{id}")
     public ResponseEntity<String> updateJobPost(@RequestBody UpdateJobPostDto jobPost , @PathVariable Long id, @RequestParam String email) {
@@ -153,7 +152,6 @@ public class EmployerAdminController {
             }
         }
         catch (Exception e) {
-            e.printStackTrace();
             log.error("Error occurred while logging in HR profile", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).
                     body(new CommonResponseDto(null, UserConstants.FAILED_TO_LOGIN_HR_PROFILE));
@@ -173,7 +171,6 @@ public class EmployerAdminController {
                         body(UserConstants.ERROR_WHILE_CREATING_HR_ACCOUNT);
             }
         } catch (Exception e) {
-            e.printStackTrace();
             log.error("Error occurred while updating HR profile", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).
                     body(UserConstants.FAILED_TO_CREATE_HR_ACCOUNT);
@@ -187,7 +184,7 @@ public class EmployerAdminController {
             ResponseEntity<String> response = employerService.updateHrProfilePic(email, profilePic);
             return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to update profile picture", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to update profile picture");
         }
@@ -203,7 +200,7 @@ public class EmployerAdminController {
                 return ResponseEntity.notFound().build();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to get profile photo", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
