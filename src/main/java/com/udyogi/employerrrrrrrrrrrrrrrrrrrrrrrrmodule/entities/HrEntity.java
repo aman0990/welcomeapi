@@ -46,10 +46,11 @@ public class HrEntity {
             joinColumns = @JoinColumn(name = "employer_custom_id"),
             inverseJoinColumns = @JoinColumn(name = "hr_custom_id"))
     @JsonBackReference
-    @JsonIgnore
+
     private EmployerAdmin employerAdmin;
     @Column(name = "hr_custom_id")
     private String hrCustomId;
     @OneToMany(mappedBy = "hrEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+
     private Set<JobPost> jobPosts = new LinkedHashSet<>();
 }

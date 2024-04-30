@@ -3,6 +3,7 @@ package com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.repositories;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.EmployerAdmin;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface EmployerAdminRepo extends JpaRepository<EmployerAdmin, Long> {
@@ -12,4 +13,6 @@ public interface EmployerAdminRepo extends JpaRepository<EmployerAdmin, Long> {
     boolean existsByEmail(String email);
 
     Optional<EmployerAdmin> findByEmployerCustomId(String customId);
+
+    List<EmployerAdmin> findHrEntitiesById(Long employerCustomId);
 }

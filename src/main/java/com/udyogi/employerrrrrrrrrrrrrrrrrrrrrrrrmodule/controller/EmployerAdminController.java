@@ -2,6 +2,8 @@ package com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.controller;
 
 import com.udyogi.constants.UserConstants;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.dtos.*;
+import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.EmployerAdmin;
+import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.entities.HrEntity;
 import com.udyogi.employerrrrrrrrrrrrrrrrrrrrrrrrmodule.services.EmployerService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -11,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -203,5 +206,9 @@ public class EmployerAdminController {
             log.error("Failed to get profile photo", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+    @GetMapping("/all-job-posts/{employerCustomId}")
+    public List<?> allJobPostsDTOS(@PathVariable Long employerCustomId){
+        return employerService.getAllJobPosted(employerCustomId);
     }
 }

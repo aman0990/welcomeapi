@@ -25,9 +25,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -330,4 +333,45 @@ public class EmployerService {
     private byte[] getDefaultProfilePhoto() {
         return new byte[0];
     }
+
+    public List<?> getAllJobPosted(Long employerCustomId) {
+        // Find the EmployerAdmin by employerCustomId
+        Optional<EmployerAdmin> employerAdminOptional = employerAdminRepo.findById(employerCustomId);
+
+        // Check if EmployerAdmin exists
+        if (employerAdminOptional.isPresent()) {
+            // Get the list of HrEntities associated with the EmployerAdmin
+            EmployerAdmin employerAdmin = employerAdminOptional.get();
+            List<JobPost> jobPosts = employerAdmin.getJobPosts();
+            return jobPosts;
+        } else {
+            // If EmployerAdmin with the given ID does not exist, return an empty list
+            return Collections.emptyList();
+        }
+
+//        .stream()
+//                .flatMap(hr -> {
+//                    EmployerAdmin employerAdmin = hr.getEmployerAdmin();
+//                    if (employerAdmin != null) {
+//                        return employerAdmin.getJobPosts().stream()
+//                                .map(jobPost -> {
+//                                    AllJobPostsDTO dto = new AllJobPostsDTO();
+//                                    dto.setId(jobPost.getId());
+//                                    dto.setJobTitle(jobPost.getJobTitle());
+//                                    dto.setExperience(jobPost.getExperience());
+//                                    dto.setSalary(Double.valueOf(jobPost.getSalary()));
+//                                    dto.setPositions(jobPost.getPositions());
+//                                    dto.setDateOfPost(jobPost.getCreatedDate());
+//                                    dto.setCoOrdinator(hr.getHrName());
+//                                    dto.setStatus(String.valueOf(jobPost.getJobStatus()));
+//                                    return dto;
+//                                });
+//                    } else {
+//                        return Stream.empty(); // Return an empty stream if employerAdmin is null
+//                    }
+//                })
+//                .collect(Collectors.toList());
+    }
+
+
 }
