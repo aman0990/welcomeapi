@@ -101,6 +101,18 @@ public class EmployerAdminController {
         }
     }
 
+    @GetMapping("/get-all-job-applications/{email}")
+    public ResponseEntity<CommonResponseDto> getAllJobApplications(@PathVariable String email) {
+        try {
+            CommonResponseDto commonResponseDto = employerService.getAllPosts(email).getBody();
+            log.info("All job applications retrieved successfully");
+            return new ResponseEntity<>(commonResponseDto, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error occurred while retrieving all job applications", e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     // adding HR by sending OTP to HR email taking HR email as input and admin number
     @PostMapping("/add-hr/{email}")
     public ResponseEntity<String> addHr(@PathVariable String email, @RequestParam Long id) {

@@ -25,12 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -203,26 +198,33 @@ public class EmployerService {
 
     // All Users
     public ResponseEntity<CommonResponseDto> getAllUsers(String email) {
-        try{
+        try {
             EmployerAdmin employerAdmin = employerAdminRepo.findByEmail(email);
-            List<HrEntity> hrEntity = hrRepo.findByEmployerAdmin(employerAdmin);
-            if(!hrEntity.isEmpty()){
-                AllUsersData allUsersData = new AllUsersData();
-                hrEntity.forEach(hr -> {
+            List<HrEntity> hrEntities = hrRepo.findByEmployerAdmin(employerAdmin);
+            if (!hrEntities.isEmpty()) {
+                List<AllUsersData> allUsersDataList = new ArrayList<>();
+                for (HrEntity hr : hrEntities) {
+                    AllUsersData allUsersData = new AllUsersData();
                     allUsersData.setId(hr.getHrId());
                     allUsersData.setCo_Ordinator_Name(hr.getHrName());
                     allUsersData.setCo_Ordinator_Email(hr.getEmail());
                     allUsersData.setNumberOfPosts(String.valueOf(hr.getJobPosts().size()));
-                    JobApplicationEntity jobApplicationEntity = new JobApplicationEntity();
-                    var jobPosts = jobApplicationEntity.getJobPost();
-                    allUsersData.setJobPostDate(jobPosts.getCreatedDate());
-                    allUsersData.setActive(jobPostRepo.findById(jobPosts.getId()).get().getActive());
-                });
+                    // Assuming job posts are retrieved from the first job post in hr's job posts list
+                    if (!hr.getJobPosts().isEmpty()) {
+                        Optional<JobPost> jobPost = hr.getJobPosts().stream().findFirst(); // Get the first job post
+                        allUsersData.setJobPostDate(jobPost.get().getCreatedDate());
+                        allUsersData.setActive(jobPost.get().getActive());
+                        // Set number of job applications received for this job post (if applicable)
+                        int numberOfApplications = jobApplicationEntityRepository.countByJobPost(jobPost.get());
+                        allUsersData.setNumberOfApplicationReceived(numberOfApplications);
+                    }
+                    allUsersDataList.add(allUsersData);
+                }
                 return ResponseEntity.status(HttpStatus.OK)
-                        .body(new CommonResponseDto(allUsersData, UserConstants.ALL_USERS));
-            }else {
+                        .body(new CommonResponseDto(allUsersDataList, UserConstants.ALL_USERS));
+            } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new CommonResponseDto(null, UserConstants.USER_NOT_FOUND + ": " +email));
+                        .body(new CommonResponseDto(null, UserConstants.USER_NOT_FOUND + ": " + email));
             }
         } catch (Exception e) {
             log.error("Error getting all users", e);
@@ -334,44 +336,47 @@ public class EmployerService {
         return new byte[0];
     }
 
-    public List<?> getAllJobPosted(Long employerCustomId) {
-        // Find the EmployerAdmin by employerCustomId
-        Optional<EmployerAdmin> employerAdminOptional = employerAdminRepo.findById(employerCustomId);
+    public ResponseEntity<CommonResponseDto> getAllPosts(String email) {
+        try {
+            // Find the EmployerAdmin based on the provided email
+            EmployerAdmin employerAdmin = employerAdminRepo.findByEmail(email);
+            if (employerAdmin == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new CommonResponseDto(null, UserConstants.USER_NOT_FOUND + ": " + email));
+            }
 
-        // Check if EmployerAdmin exists
-        if (employerAdminOptional.isPresent()) {
-            // Get the list of HrEntities associated with the EmployerAdmin
-            EmployerAdmin employerAdmin = employerAdminOptional.get();
-            List<JobPost> jobPosts = employerAdmin.getJobPosts();
-            return jobPosts;
-        } else {
-            // If EmployerAdmin with the given ID does not exist, return an empty list
-            return Collections.emptyList();
+            // Find all HrEntity instances associated with the EmployerAdmin
+            List<HrEntity> hrEntities = hrRepo.findByEmployerAdmin(employerAdmin);
+            if (hrEntities.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new CommonResponseDto(null, UserConstants.NO_HR_ENTITIES_FOUND));
+            }
+
+            List<AllJobPostsDto> allJobPostsDtoList = new ArrayList<>();
+            for (HrEntity hr : hrEntities) {
+                Set<JobPost> jobPosts = hr.getJobPosts();
+                if (!jobPosts.isEmpty()) {
+                    // Get the first job post for basic details (if available)
+                    JobPost firstJobPost = jobPosts.iterator().next();
+
+                    AllJobPostsDto allJobPostsDto = new AllJobPostsDto();
+                    allJobPostsDto.setJobId(firstJobPost.getId());
+                    allJobPostsDto.setJobTitle(firstJobPost.getJobTitle());
+                    allJobPostsDto.setExperience(hr.getWorkExperience());
+                    allJobPostsDto.setSalary(firstJobPost.getSalary());
+                    allJobPostsDto.setCo_Ordinator_Name(hr.getHrName());
+                    allJobPostsDto.setApplications(jobPosts.size());
+                    allJobPostsDto.setCreatedDate(firstJobPost.getCreatedDate());
+                    allJobPostsDto.setActive(firstJobPost.getActive());
+                    allJobPostsDtoList.add(allJobPostsDto);
+                }
+            }
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new CommonResponseDto(allJobPostsDtoList, UserConstants.ALL_JOB_POSTS));
+        } catch (Exception e) {
+            log.error("Error getting all job posts", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new CommonResponseDto(null, UserConstants.ERROR_GETTING_ALL_JOB_POSTS));
         }
-
-//        .stream()
-//                .flatMap(hr -> {
-//                    EmployerAdmin employerAdmin = hr.getEmployerAdmin();
-//                    if (employerAdmin != null) {
-//                        return employerAdmin.getJobPosts().stream()
-//                                .map(jobPost -> {
-//                                    AllJobPostsDTO dto = new AllJobPostsDTO();
-//                                    dto.setId(jobPost.getId());
-//                                    dto.setJobTitle(jobPost.getJobTitle());
-//                                    dto.setExperience(jobPost.getExperience());
-//                                    dto.setSalary(Double.valueOf(jobPost.getSalary()));
-//                                    dto.setPositions(jobPost.getPositions());
-//                                    dto.setDateOfPost(jobPost.getCreatedDate());
-//                                    dto.setCoOrdinator(hr.getHrName());
-//                                    dto.setStatus(String.valueOf(jobPost.getJobStatus()));
-//                                    return dto;
-//                                });
-//                    } else {
-//                        return Stream.empty(); // Return an empty stream if employerAdmin is null
-//                    }
-//                })
-//                .collect(Collectors.toList());
     }
-
-
 }
