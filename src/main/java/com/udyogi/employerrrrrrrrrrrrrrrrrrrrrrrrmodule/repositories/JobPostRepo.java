@@ -14,4 +14,8 @@ public interface JobPostRepo extends JpaRepository<JobPost, Long>{
     List<JobPost> findTop5ByEmployerAdminOrderByCreatedDateDesc(EmployerAdmin employerAdmin);
 
     List<JobPost> findTop5ByHrEntityOrderByCreatedDateDesc(HrEntity hrEntity);
+
+    List<JobPost> findByEmployerAdmin(EmployerAdmin employerAdmin);
+
+    //List<JobPost> findByHrEntity(List<HrEntity> hrEntity);
 }

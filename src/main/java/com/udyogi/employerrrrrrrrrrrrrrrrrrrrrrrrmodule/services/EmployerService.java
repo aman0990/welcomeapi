@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -200,26 +201,33 @@ public class EmployerService {
 
     // All Users
     public ResponseEntity<CommonResponseDto> getAllUsers(String email) {
-        try{
+        try {
             EmployerAdmin employerAdmin = employerAdminRepo.findByEmail(email);
-            List<HrEntity> hrEntity = hrRepo.findByEmployerAdmin(employerAdmin);
-            if(!hrEntity.isEmpty()){
-                AllUsersData allUsersData = new AllUsersData();
-                hrEntity.forEach(hr -> {
+            List<HrEntity> hrEntities = hrRepo.findByEmployerAdmin(employerAdmin);
+            if (!hrEntities.isEmpty()) {
+                List<AllUsersData> allUsersDataList = new ArrayList<>();
+                for (HrEntity hr : hrEntities) {
+                    AllUsersData allUsersData = new AllUsersData();
                     allUsersData.setId(hr.getHrId());
                     allUsersData.setCo_Ordinator_Name(hr.getHrName());
                     allUsersData.setCo_Ordinator_Email(hr.getEmail());
                     allUsersData.setNumberOfPosts(String.valueOf(hr.getJobPosts().size()));
-                    JobApplicationEntity jobApplicationEntity = new JobApplicationEntity();
-                    var jobPosts = jobApplicationEntity.getJobPost();
-                    allUsersData.setJobPostDate(jobPosts.getCreatedDate());
-                    allUsersData.setActive(jobPostRepo.findById(jobPosts.getId()).get().getActive());
-                });
+                    // Assuming job posts are retrieved from the first job post in hr's job posts list
+                    if (!hr.getJobPosts().isEmpty()) {
+                        Optional<JobPost> jobPost = hr.getJobPosts().stream().findFirst(); // Get the first job post
+                        allUsersData.setJobPostDate(jobPost.get().getCreatedDate());
+                        allUsersData.setActive(jobPost.get().getActive());
+                        // Set number of job applications received for this job post (if applicable)
+                        int numberOfApplications = jobApplicationEntityRepository.countByJobPost(jobPost.get());
+                        allUsersData.setNumberOfApplicationReceived(numberOfApplications);
+                    }
+                    allUsersDataList.add(allUsersData);
+                }
                 return ResponseEntity.status(HttpStatus.OK)
-                        .body(new CommonResponseDto(allUsersData, UserConstants.ALL_USERS));
-            }else {
+                        .body(new CommonResponseDto(allUsersDataList, UserConstants.ALL_USERS));
+            } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new CommonResponseDto(null, UserConstants.USER_NOT_FOUND + ": " +email));
+                        .body(new CommonResponseDto(null, UserConstants.USER_NOT_FOUND + ": " + email));
             }
         } catch (Exception e) {
             log.error("Error getting all users", e);
