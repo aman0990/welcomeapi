@@ -359,15 +359,7 @@ public class EmployerService {
                     // Get the first job post for basic details (if available)
                     JobPost firstJobPost = jobPosts.iterator().next();
 
-                    AllJobPostsDto allJobPostsDto = new AllJobPostsDto();
-                    allJobPostsDto.setJobId(firstJobPost.getId());
-                    allJobPostsDto.setJobTitle(firstJobPost.getJobTitle());
-                    allJobPostsDto.setExperience(hr.getWorkExperience());
-                    allJobPostsDto.setSalary(firstJobPost.getSalary());
-                    allJobPostsDto.setCo_Ordinator_Name(hr.getHrName());
-                    allJobPostsDto.setApplications(jobPosts.size());
-                    allJobPostsDto.setCreatedDate(firstJobPost.getCreatedDate());
-                    allJobPostsDto.setActive(firstJobPost.getActive());
+                    AllJobPostsDto allJobPostsDto = getAllJobPostsDto(hr, firstJobPost, jobPosts);
                     allJobPostsDtoList.add(allJobPostsDto);
                 }
             }
@@ -378,5 +370,19 @@ public class EmployerService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new CommonResponseDto(null, UserConstants.ERROR_GETTING_ALL_JOB_POSTS));
         }
+    }
+
+    private static AllJobPostsDto getAllJobPostsDto(HrEntity hr, JobPost firstJobPost, Set<JobPost> jobPosts) {
+        AllJobPostsDto allJobPostsDto = new AllJobPostsDto();
+        allJobPostsDto.setJobId(firstJobPost.getId());
+        allJobPostsDto.setJobTitle(firstJobPost.getJobTitle());
+        allJobPostsDto.setVacancies(firstJobPost.getPositions());
+        allJobPostsDto.setExperience(hr.getWorkExperience());
+        allJobPostsDto.setSalary(firstJobPost.getSalary());
+        allJobPostsDto.setCo_Ordinator_Name(hr.getHrName());
+        allJobPostsDto.setApplications(jobPosts.size());
+        allJobPostsDto.setCreatedDate(firstJobPost.getCreatedDate());
+        allJobPostsDto.setActive(firstJobPost.getActive());
+        return allJobPostsDto;
     }
 }
