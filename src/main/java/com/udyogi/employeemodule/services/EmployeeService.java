@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
 
 @Service
@@ -233,28 +234,37 @@ public class EmployeeService {
      * @param file MultipartFile containing the resume file
      * @return ResponseEntity indicating the outcome of adding the resume
      */
+
     public ResponseEntity<String> addResume(Long id, MultipartFile file) {
         try {
-            EmployeeEntity employeeEntity = employeeRepo.findByEmployeeId(id);
-
-            if (employeeEntity == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(UserConstants.USER_NOT_FOUND + " " + id);
-            } else {
-                String fileName = utilService.storeFile(file);
-                EducationDetails educationDetails = new EducationDetails();
-                educationDetails.setResume(fileName.getBytes());
-                educationDetailsRepository.save(educationDetails);
-                return ResponseEntity.status(HttpStatus.OK)
-                        .body(UserConstants.RESUME_ADDED_SUCCESSFULLY);
+            // Check if the uploaded file is empty or not a PDF
+            if (file.isEmpty() || !MediaType.APPLICATION_PDF.equals(MediaType.parseMediaType(file.getContentType()))) {
+                return ResponseEntity.badRequest().body("Please upload a PDF file");
             }
-        } catch (DataAccessException | FileStorageException e) {
-            logger.error("Error occurred during adding resume", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(UserConstants.FAILED_TO_ADD_RESUME);
+
+            // Retrieve the employee entity
+            EmployeeEntity employeeEntity = employeeRepo.findByEmployeeId(id);
+            if (employeeEntity == null) {
+                return new ResponseEntity("Employee not found with ID: " + id, HttpStatus.NOT_FOUND);
+            }
+
+            // Retrieve the education details
+            EducationDetails educationDetails = educationDetailsRepository.findByEmployee(employeeEntity);
+            if (educationDetails == null) {
+                return new ResponseEntity("Education details not found for employee: " + id, HttpStatus.NOT_FOUND);
+            }
+
+            // Set the resume data and save
+            educationDetails.setResume(file.getBytes());
+            educationDetailsRepository.save(educationDetails);
+
+            return ResponseEntity.ok(UserConstants.RESUME_ADDED_SUCCESSFULLY);
+
+        } catch (IOException e) {
+            logger.error("Error occurred during adding resume for employee: {}", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(UserConstants.FAILED_TO_ADD_RESUME);
         }
     }
-
     /**
      * Apply for a job by creating a job application entity.
      *

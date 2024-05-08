@@ -219,8 +219,8 @@ public class EmployerAdminController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    @GetMapping("/all-job-posts/{employerCustomId}")
-    public List<?> allJobPostsDTOS(@PathVariable Long employerCustomId){
-        return employerService.getAllJobPosted(employerCustomId);
-    }
+//    @GetMapping("/all-job-posts/{employerCustomId}")
+//    public List<?> allJobPostsDTOS(@PathVariable Long employerCustomId){
+//        return employerService.getAllJobPosted(employerCustomId);
+//    }
 }
